@@ -36,10 +36,10 @@ const allMenuItems = [
 ]
 
 const roleLabels: Record<string, string> = {
-  ADMIN: "Administrador",
-  FINANCEIRO: "Financeiro",
+  ADMIN: "Administrator",
+  FINANCEIRO: "Financial",
   MARKETING: "Marketing",
-  OPERADOR: "Operador",
+  OPERADOR: "Operator",
 }
 
 const roleColors: Record<string, string> = {
@@ -142,7 +142,7 @@ export function Sidebar({ session }: { session: Session }) {
               )}
             >
               <UserCog size={20} />
-              {!collapsed && <span className="text-sm font-medium">Gerenciar Usuários</span>}
+              {!collapsed && <span className="text-sm font-medium">Manage Users</span>}
             </Link>
           )}
           {!collapsed && (
@@ -179,7 +179,7 @@ export function Sidebar({ session }: { session: Session }) {
               )}
             >
               <LogOut size={22} />
-              {!collapsed && <span className="font-medium">Sair</span>}
+              {!collapsed && <span className="font-medium">Sign Out</span>}
             </button>
           </form>
         </div>
@@ -211,7 +211,7 @@ export function Sidebar({ session }: { session: Session }) {
             className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all w-16 text-white/60 hover:text-red-400"
           >
             <LogOut size={20} />
-            <span className="text-[10px] font-medium tracking-tight">Sair</span>
+            <span className="text-[10px] font-medium tracking-tight">Sign Out</span>
           </button>
         </form>
       </div>

@@ -28,10 +28,10 @@ interface User {
 const ROLES: Role[] = ["ADMIN", "FINANCEIRO", "MARKETING", "OPERADOR"];
 
 const roleLabels: Record<Role, string> = {
-  ADMIN: "Administrador",
-  FINANCEIRO: "Financeiro",
+  ADMIN: "Administrator",
+  FINANCEIRO: "Financial",
   MARKETING: "Marketing",
-  OPERADOR: "Operador",
+  OPERADOR: "Operator",
 };
 
 const roleColors: Record<Role, string> = {
@@ -78,7 +78,7 @@ function UserModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "create" && !form.password) {
-      setError("Senha é obrigatória para novos usuários.");
+      setError("Password is required for new users.");
       return;
     }
     setError(null);
@@ -87,7 +87,7 @@ function UserModal({
       await onSave(form);
       onClose();
     } catch (err: any) {
-      setError(err.message || "Erro ao salvar.");
+      setError(err.message || "An error occurred while saving.");
     } finally {
       setIsSaving(false);
     }
@@ -110,7 +110,7 @@ function UserModal({
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold">
-            {mode === "create" ? "Novo Usuário" : "Editar Usuário"}
+            {mode === "create" ? "New User" : "Edit User"}
           </h2>
           <button
             onClick={onClose}
@@ -122,11 +122,11 @@ function UserModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1.5">Nome</label>
+            <label className="block text-sm font-medium mb-1.5">Full Name</label>
             <input
               type="text"
               required
-              placeholder="Nome completo"
+              placeholder="e.g. John Smith"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
@@ -134,11 +134,11 @@ function UserModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">E-mail</label>
+            <label className="block text-sm font-medium mb-1.5">Email Address</label>
             <input
               type="email"
               required
-              placeholder="usuario@exemplo.com"
+              placeholder="user@example.com"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
@@ -147,12 +147,12 @@ function UserModal({
 
           <div>
             <label className="block text-sm font-medium mb-1.5">
-              {mode === "edit" ? "Nova Senha (deixe em branco para manter)" : "Senha"}
+              {mode === "edit" ? "New Password (leave blank to keep current)" : "Password"}
             </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder={mode === "edit" ? "••••••••" : "Mínimo 6 caracteres"}
+                placeholder={mode === "edit" ? "••••••••" : "Minimum 6 characters"}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 className="w-full bg-background border border-border rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
@@ -168,7 +168,7 @@ function UserModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Nível de Acesso</label>
+            <label className="block text-sm font-medium mb-1.5">Access Level</label>
             <div className="grid grid-cols-2 gap-2">
               {ROLES.map((role) => (
                 <button
@@ -201,7 +201,7 @@ function UserModal({
               onClick={onClose}
               className="flex-1 py-3 border border-border rounded-xl font-medium hover:bg-accent transition-all"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
@@ -216,7 +216,7 @@ function UserModal({
               ) : (
                 <Check size={18} />
               )}
-              {isSaving ? "Salvando..." : "Salvar"}
+              {isSaving ? "Saving..." : "Save"}
             </button>
           </div>
         </form>
@@ -255,7 +255,7 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
       body: JSON.stringify(data),
     });
     const result = await res.json();
-    if (!res.ok) throw new Error(result.error || "Erro ao criar usuário.");
+    if (!res.ok) throw new Error(result.error || "Failed to create user.");
     setUsers((prev) => [...prev, result]);
   };
 
@@ -270,18 +270,18 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
       body: JSON.stringify(payload),
     });
     const result = await res.json();
-    if (!res.ok) throw new Error(result.error || "Erro ao editar usuário.");
+    if (!res.ok) throw new Error(result.error || "Failed to edit user.");
     setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? result : u)));
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Tem certeza que deseja excluir este usuário?")) return;
+    if (!confirm("Are you sure you want to delete this user?")) return;
     setDeletingId(id);
     try {
       const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
       const result = await res.json();
       if (!res.ok) {
-        alert(result.error || "Erro ao excluir.");
+        alert(result.error || "Failed to delete user.");
       } else {
         setUsers((prev) => prev.filter((u) => u.id !== id));
       }
@@ -295,9 +295,9 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Gerenciar Usuários</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Manage Users</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Crie, edite e controle os acessos da equipe.
+            Create, edit, and control your team's access levels.
           </p>
         </div>
         <button
@@ -308,7 +308,7 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
           className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-primary/25 active:scale-95 w-full md:w-auto"
         >
           <PlusCircle size={20} />
-          Novo Usuário
+          New User
         </button>
       </div>
 
@@ -339,18 +339,18 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
       {/* Table */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="p-4 md:p-6 border-b border-border">
-          <h2 className="font-semibold text-lg">Usuários Cadastrados</h2>
+          <h2 className="font-semibold text-lg">Registered Users</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-muted/50">
-                <th className="p-4 font-semibold text-sm border-b border-border">Usuário</th>
-                <th className="p-4 font-semibold text-sm border-b border-border">E-mail</th>
-                <th className="p-4 font-semibold text-sm border-b border-border">Nível de Acesso</th>
-                <th className="p-4 font-semibold text-sm border-b border-border">Desde</th>
+                <th className="p-4 font-semibold text-sm border-b border-border">User</th>
+                <th className="p-4 font-semibold text-sm border-b border-border">Email</th>
+                <th className="p-4 font-semibold text-sm border-b border-border">Access Level</th>
+                <th className="p-4 font-semibold text-sm border-b border-border">Member Since</th>
                 <th className="p-4 font-semibold text-sm border-b border-border text-right">
-                  Ações
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -368,7 +368,7 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
                       <div>
                         <div className="font-semibold">{user.name}</div>
                         {user.id === currentUserId && (
-                          <span className="text-[10px] text-primary font-bold">Você</span>
+                          <span className="text-[10px] text-primary font-bold">You</span>
                         )}
                       </div>
                     </div>
@@ -387,7 +387,7 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
                     </span>
                   </td>
                   <td className="p-4 border-b border-border text-muted-foreground text-xs">
-                    {new Date(user.createdAt).toLocaleDateString("pt-BR")}
+                    {new Date(user.createdAt).toLocaleDateString("en-US")}
                   </td>
                   <td className="p-4 border-b border-border text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -397,7 +397,7 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
                           setModalMode("edit");
                         }}
                         className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors text-muted-foreground"
-                        title="Editar"
+                        title="Edit User"
                       >
                         <Pencil size={16} />
                       </button>
@@ -407,8 +407,8 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
                         className="p-2 hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed"
                         title={
                           user.id === currentUserId
-                            ? "Você não pode excluir sua própria conta"
-                            : "Excluir"
+                            ? "You cannot delete your own account"
+                            : "Delete User"
                         }
                       >
                         <Trash2 size={16} />
@@ -421,12 +421,12 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
           </table>
           {isLoading ? (
             <div className="p-12 text-center text-muted-foreground animate-pulse">
-              Carregando usuários...
+              Loading users...
             </div>
           ) : users.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground">
               <Users className="mx-auto mb-4 opacity-20" size={48} />
-              <p>Nenhum usuário encontrado.</p>
+              <p>No users found.</p>
             </div>
           ) : null}
         </div>

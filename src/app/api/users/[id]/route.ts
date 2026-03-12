@@ -15,7 +15,7 @@ export async function PUT(
 ) {
   const session = await requireAdmin();
   if (!session) {
-    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   try {
@@ -30,7 +30,7 @@ export async function PUT(
         where: { email, NOT: { id } },
       });
       if (existing) {
-        return NextResponse.json({ error: "E-mail já cadastrado por outro usuário." }, { status: 400 });
+        return NextResponse.json({ error: "Email already in use by another user." }, { status: 400 });
       }
     }
 
@@ -58,7 +58,7 @@ export async function DELETE(
 ) {
   const session = await requireAdmin();
   if (!session) {
-    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   try {
@@ -67,7 +67,7 @@ export async function DELETE(
 
     // Prevent admin from deleting themselves
     if (id === session.id) {
-      return NextResponse.json({ error: "Você não pode excluir sua própria conta." }, { status: 400 });
+      return NextResponse.json({ error: "You cannot delete your own account." }, { status: 400 });
     }
 
     await prisma.user.delete({ where: { id } });

@@ -34,13 +34,13 @@ export function ProjectsGrid({ role }: { role: string }) {
 
   const deleteProject = async (id: number) => {
     if (!canDelete) return
-    if (confirm("Tem certeza que deseja excluir este projeto?")) {
+    if (confirm("Are you sure you want to delete this project?")) {
       try {
         const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
         if (res.ok) {
           setProjects(projects.filter(p => p.id !== id))
         } else {
-          alert("Acesso negado.")
+          alert("Access denied.")
         }
       } catch (error) {
         console.error("Failed to delete project", error)

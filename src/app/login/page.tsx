@@ -54,7 +54,7 @@ export default function LoginPage() {
               />
             </div>
             <h1 className="text-2xl font-bold text-white">Statewide Stone Care</h1>
-            <p className="text-white/50 text-sm mt-1">Faça login para continuar</p>
+            <p className="text-white/50 text-sm mt-1">Sign in to continue</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -66,14 +66,14 @@ export default function LoginPage() {
                 type="email"
                 name="email"
                 required
-                placeholder="seu@email.com"
+                placeholder="your@email.com"
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 transition-all"
               />
             </div>
 
             <div>
               <label className="block text-white/70 text-sm font-medium mb-1.5">
-                Senha
+                Password
               </label>
               <input
                 type="password"
@@ -108,10 +108,10 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Entrando...
+                  Signing in...
                 </>
               ) : (
-                "Entrar"
+                "Sign In"
               )}
             </button>
           </form>

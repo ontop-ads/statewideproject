@@ -50,13 +50,13 @@ export function LeadsTable({ role }: { role: string }) {
 
   const deleteLead = async (id: number) => {
     if (!canDelete) return
-    if (confirm("Tem certeza que deseja excluir este lead?")) {
+    if (confirm("Are you sure you want to delete this lead?")) {
       try {
         const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' })
         if (res.ok) {
           setLeads(leads.filter(lead => lead.id !== id))
         } else {
-          alert("Acesso negado.")
+          alert("Access denied.")
         }
       } catch (error) {
         console.error("Failed to delete lead", error)
@@ -214,7 +214,7 @@ export function LeadsTable({ role }: { role: string }) {
                       <button 
                         onClick={() => deleteLead(lead.id)}
                         className="p-2 hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors text-muted-foreground"
-                        title="Excluir Lead"
+                        title="Delete Lead"
                       >
                         <Trash2 size={18} />
                       </button>

@@ -10,18 +10,18 @@ export async function loginAction(formData: FormData) {
   const password = formData.get("password") as string;
 
   if (!email || !password) {
-    return { error: "Email e senha são obrigatórios." };
+    return { error: "Email and password are required." };
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
-    return { error: "Credenciais inválidas." };
+    return { error: "Invalid credentials." };
   }
 
   const passwordMatch = await bcrypt.compare(password, user.password);
   if (!passwordMatch) {
-    return { error: "Credenciais inválidas." };
+    return { error: "Invalid credentials." };
   }
 
   await loginToSession(user);

@@ -15,7 +15,7 @@ async function requireAdmin() {
 export async function GET() {
   const session = await requireAdmin();
   if (!session) {
-    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   try {
@@ -32,7 +32,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await requireAdmin();
   if (!session) {
-    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   try {
@@ -40,12 +40,12 @@ export async function POST(request: Request) {
     const { name, email, password, role } = data;
 
     if (!name || !email || !password || !role) {
-      return NextResponse.json({ error: "Todos os campos são obrigatórios." }, { status: 400 });
+      return NextResponse.json({ error: "All fields are required." }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ error: "E-mail já cadastrado." }, { status: 400 });
+      return NextResponse.json({ error: "Email already in use." }, { status: 400 });
     }
 
     const hashed = await bcrypt.hash(password, 10);
