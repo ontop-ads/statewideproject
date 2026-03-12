@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("OPERADOR") // ADMIN, FINANCEIRO, MARKETING, OPERADOR
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String
+  serviceType String
+  status      String    @default("New")
+  value       String
+  source      String    @default("Referral")
+  address     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  projects    Project[]
+}
+
+model Project {
+  id            Int      @id @default(autoincrement())
+  leadId        Int?
+  name          String
+  client        String
+  value         String
+  deadline      String   @default("TBD")
+  status        String   @default("Planning")
+  paymentStatus String   @default("Unpaid")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  lead          Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+}
