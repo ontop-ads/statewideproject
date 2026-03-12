@@ -6,6 +6,7 @@ import { DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, Briefcase } from 
 export default function FinancialPage() {
   const [stats, setStats] = useState({
     totalRevenue: 0,
+    pipelineValue: 0,
     averageJob: 0,
     projectsCount: 0,
     revenuePerLead: 0,
@@ -31,24 +32,27 @@ export default function FinancialPage() {
         const projects = await projectsRes.json()
         const leads = await leadsRes.json()
         
-        const paidProjects = projects.filter((p: any) => p.paymentStatus === "Paid")
-      
-      const now = new Date()
-      const currentYear = now.getFullYear()
-      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-
-      const revenue = paidProjects.reduce((acc: number, p: any) => {
+        const now = new Date()
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        
+      const totalRevenue = projects.reduce((acc: number, p: any) => {
         const valueStr = p.value || "0"
         return acc + (parseFloat(valueStr.replace(/[^0-9.-]+/g, "")) || 0)
       }, 0)
+
+      const pipelineValue = leads.reduce((acc: number, l: any) => {
+        const valueStr = l.value || "0"
+        return acc + (parseFloat(valueStr.replace(/[^0-9.-]+/g, "")) || 0)
+      }, 0)
       
-      const avg = projects.length > 0 ? revenue / projects.length : 0
-      const revenuePerLead = leads.length > 0 ? revenue / leads.length : 0
+      const avg = projects.length > 0 ? totalRevenue / projects.length : 0
+      const revenuePerLead = leads.length > 0 ? totalRevenue / leads.length : 0
       const jobsThisMonth = projects.filter((p: any) => new Date(p.createdAt) >= firstOfMonth).length
       
-      // Calculate Monthly Data for the chart
+      // Calculate Monthly Data for the chart (All projects by default to show progress)
       const monthlyRevenue = new Array(12).fill(0)
-      paidProjects.forEach((p: any) => {
+      const currentYear = now.getFullYear()
+      projects.forEach((p: any) => {
         const date = new Date(p.createdAt)
         if (date.getFullYear() === currentYear) {
           const month = date.getMonth()
@@ -83,7 +87,8 @@ export default function FinancialPage() {
       }))
 
       setStats({
-        totalRevenue: revenue,
+        totalRevenue,
+        pipelineValue,
         averageJob: Math.round(avg),
         projectsCount: projects.length,
         revenuePerLead: Math.round(revenuePerLead),
@@ -103,9 +108,9 @@ export default function FinancialPage() {
   }, [])
 
   const statCards = [
-    { label: "Rev per Lead", value: `$${stats.revenuePerLead.toLocaleString()}`, icon: DollarSign, trend: null, positive: true },
-    { label: "Jobs (Month)", value: stats.jobsThisMonth.toString(), icon: Briefcase, trend: null, positive: true },
-    { label: "Close Time", value: `${stats.avgTimeToClose} Days`, icon: TrendingUp, trend: null, positive: true },
+    { label: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, trend: "Contracted", positive: true },
+    { label: "Pipeline Value", value: `$${stats.pipelineValue.toLocaleString()}`, icon: Briefcase, trend: "Open Leads", positive: true },
+    { label: "Rev per Lead", value: `$${stats.revenuePerLead.toLocaleString()}`, icon: TrendingUp, trend: "Average", positive: true },
   ]
 
   return (

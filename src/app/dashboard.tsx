@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { PlusCircle, Search, TrendingUp, Users, Briefcase, DollarSign, Clock, Phone } from "lucide-react"
+import { PlusCircle, Search, TrendingUp, Users, Briefcase, DollarSign, Clock, Phone, Target } from "lucide-react"
 import { AddLeadModal } from "@/components/add-lead-modal"
 import { cn } from "@/lib/utils"
 
@@ -161,12 +161,12 @@ export function Dashboard({ role }: { role: string }) {
   }
 
   const statCards = [
-    { label: "Rev per Lead", value: `$${stats.revenuePerLead.toLocaleString()}`, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { label: "Jobs (Month)", value: stats.jobsThisMonth.toString(), icon: Briefcase, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-500/10", subtitle: "Total Contracted" },
+    { label: "Pipeline Value", value: `$${stats.recentValue.toLocaleString()}`, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-500/10", subtitle: "Open Estimates" },
     { 
       label: "Monthly Goal", 
       value: `$${monthlyGoal.toLocaleString()}`, 
-      icon: DollarSign, 
+      icon: Target, 
       color: "text-amber-500", 
       bg: "bg-amber-500/10", 
       subtitle: `${Math.round((stats.monthRevenue/monthlyGoal)*100)}% reached`,
