@@ -59,12 +59,12 @@ export function Dashboard({ role }: { role: string }) {
 
     const totalPipeline = leads.reduce((acc: number, lead: any) => acc + (parseFloat(lead.value) || 0), 0)
     
+    // Changing to count all projects as contracted revenue (as per user request "Valor Total Contratado")
     const monthRevenue = projects
-      .filter((p: any) => p.paymentStatus === "Paid" && new Date(p.createdAt) >= firstOfMonth)
-      .reduce((acc: number, p: any) => acc + (parseFloat(p.value?.replace(/[^0-9.-]+/g, "")) || 0), 0)
+      .filter((p: any) => new Date(p.createdAt) >= firstOfMonth)
+      .reduce((acc: number, p: any) => acc+ (parseFloat(p.value?.replace(/[^0-9.-]+/g, "")) || 0), 0)
 
     const totalRevenue = projects
-      .filter((p: any) => p.paymentStatus === "Paid")
       .reduce((acc: number, p: any) => acc + (parseFloat(p.value?.replace(/[^0-9.-]+/g, "")) || 0), 0)
 
     const revenuePerLead = leads.length > 0 ? totalRevenue / leads.length : 0

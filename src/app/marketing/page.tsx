@@ -6,6 +6,7 @@ import { BarChart3, TrendingUp, Users, Target, Instagram, Search, Share2 } from 
 export default function MarketingPage() {
   const [data, setData] = useState({
     totalLeads: 0,
+    leadQuality: 0,
     sources: [
       { label: "Google Search", icon: Search, value: 0, color: "bg-blue-500", leads: 0, growth: "+0%" },
       { label: "Instagram", icon: Instagram, value: 0, color: "bg-pink-500", leads: 0, growth: "+0%" },
@@ -34,7 +35,7 @@ export default function MarketingPage() {
         let count = 0
         if (s.label === "Google Search") count = breakdown["Google"] || 0
         else if (s.label === "Instagram") count = breakdown["Instagram"] || 0
-        else if (s.label === "Referrals") count = breakdown["Referral"] || 0
+        else if (s.label === "Referrals") count = (breakdown["Referral"] || 0) + (breakdown["Referrals"] || 0)
         
         return {
           ...s,
@@ -43,8 +44,12 @@ export default function MarketingPage() {
         }
       })
 
+      const confirmedJobs = leads.filter((l: any) => l.status === "Confirmed Job").length
+      const leadQuality = leads.length > 0 ? Math.round((confirmedJobs / leads.length) * 100) : 0
+
         setData({
           totalLeads: leads.length,
+          leadQuality,
           sources: updatedSources
         })
       } catch (error) {
@@ -73,7 +78,7 @@ export default function MarketingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           { label: "Total Leads", value: data.totalLeads.toString(), icon: Users, trend: "" },
-          { label: "Lead Quality", value: "N/A", icon: Target, trend: "" },
+          { label: "Lead Quality", value: `${data.leadQuality}%`, icon: Target, trend: "" },
           { label: "Active Channels", value: "3", icon: TrendingUp, trend: "" },
         ].map((stat, i) => (
           <div key={i} className="bg-card border border-border p-6 rounded-2xl">
