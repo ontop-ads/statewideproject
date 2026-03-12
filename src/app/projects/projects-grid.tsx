@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Briefcase, Calendar, DollarSign, Trash2 } from "lucide-react"
+import { Briefcase, Calendar, DollarSign, Trash2, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const CAN_MANAGE = ["ADMIN", "FINANCEIRO"]
@@ -143,6 +143,36 @@ export function ProjectsGrid({ role }: { role: string }) {
                   Deadline
                 </div>
                 <span className="font-medium">{project.deadline}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <User size={16} />
+                  Employee
+                </div>
+                {canTogglePayment ? (
+                  <button 
+                    onClick={async () => {
+                      const newEmp = prompt("Update assigned employee:", project.assignedEmployee || "Unassigned");
+                      if (newEmp !== null) {
+                        try {
+                          setProjects(projects.map(p => p.id === project.id ? { ...p, assignedEmployee: newEmp } : p))
+                          await fetch(`/api/projects/${project.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ assignedEmployee: newEmp })
+                          })
+                        } catch (err) {
+                          console.error("Update failed", err);
+                        }
+                      }
+                    }}
+                    className="font-medium hover:text-primary transition-colors cursor-pointer"
+                  >
+                    {project.assignedEmployee || "Unassigned"}
+                  </button>
+                ) : (
+                  <span className="font-medium">{project.assignedEmployee || "Unassigned"}</span>
+                )}
               </div>
             </div>
 

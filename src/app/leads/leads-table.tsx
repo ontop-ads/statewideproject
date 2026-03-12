@@ -81,6 +81,8 @@ export function LeadsTable({ role }: { role: string }) {
       if (!res.ok) throw new Error("Update failed")
 
       if (newStatus === "Confirmed Job" && oldLead.status !== "Confirmed Job") {
+        const employeeName = prompt("Which employee is assigned to this project?", "Unassigned");
+        
         await fetch('/api/projects', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -89,6 +91,7 @@ export function LeadsTable({ role }: { role: string }) {
             name: `${oldLead.serviceType} - ${oldLead.name}`,
             client: oldLead.name,
             value: oldLead.value,
+            assignedEmployee: employeeName || "Unassigned",
           })
         })
       }

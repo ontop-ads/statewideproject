@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         deadline: data.deadline || "TBD",
         status: data.status || "Planning",
         paymentStatus: data.paymentStatus || "Unpaid",
+        assignedEmployee: data.assignedEmployee || "Unassigned",
       },
     });
 

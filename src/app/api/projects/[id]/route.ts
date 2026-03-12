@@ -23,6 +23,7 @@ export async function PUT(
       where: { id },
       data: {
         paymentStatus: data.paymentStatus,
+        assignedEmployee: data.assignedEmployee,
       },
     });
 

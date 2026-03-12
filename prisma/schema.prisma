@@ -41,6 +41,7 @@ model Project {
   deadline      String   @default("TBD")
   status        String   @default("Planning")
   paymentStatus String   @default("Unpaid")
+  assignedEmployee String? @default("Unassigned")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
