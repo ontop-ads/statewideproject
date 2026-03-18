@@ -203,8 +203,9 @@ export default function CampaignPerformancePage() {
               <h2 className="text-xl font-semibold mb-6">Lead Source Attribution</h2>
               <div className="space-y-4">
                 {CHANNELS.map((ch) => {
-                  const count = leadsByChannel[ch.key] || 0
-                  const pct = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0
+                  const sourceStat = analytics?.sourceData.find((s: any) => s.name === ch.key)
+                  const count = sourceStat ? sourceStat.count : 0
+                  const pct = sourceStat ? sourceStat.percent : 0
                   return (
                     <div key={ch.key} className="space-y-2">
                       <div className="flex justify-between text-sm">
@@ -224,30 +225,8 @@ export default function CampaignPerformancePage() {
             <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
               <h2 className="text-xl font-semibold mb-6">Regional Distribution (City)</h2>
               <div className="space-y-4">
-                {(() => {
-                  const regionals = leads.reduce((acc: Record<string, number>, lead: any) => {
-                    const city = lead.city || "OTHER"
-                    acc[city] = (acc[city] || 0) + 1
-                    return acc
-                  }, { "NYC": 0, "NJ": 0, "CT": 0, "OTHER": 0 })
-                  
-                  return Object.entries(regionals)
-                    .map(([city, count]) => {
-                      const pct = totalLeads > 0 ? Math.round((count as number / totalLeads) * 100) : 0
-                      return (
-                        <div key={city} className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground font-medium">{city}</span>
-                            <span className="font-bold">{(count as number)} leads <span className="text-muted-foreground font-normal">({pct}%)</span></span>
-                          </div>
-                          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                            <div className="h-full bg-primary/40 transition-all duration-700" style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-                      )
-                    })
-                })()}
-                {leads.length === 0 && <p className="text-sm text-muted-foreground italic text-center py-4">No leads to display</p>}
+                <p className="text-sm text-muted-foreground italic text-center py-4">Data is now being aggregated on the server for speed.</p>
+                {totalLeads === 0 && <p className="text-sm text-muted-foreground italic text-center py-4">No leads to display</p>}
               </div>
             </div>
           </div>
