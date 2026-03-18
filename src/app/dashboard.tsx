@@ -34,87 +34,51 @@ export function Dashboard({ role }: { role: string }) {
     const fetchData = async () => {
       try {
         setIsLoading(true)
-        const [leadsRes, projectsRes] = await Promise.all([
-          fetch('/api/leads'),
-          fetch('/api/projects')
+        const [analyticsRes, leadsRes] = await Promise.all([
+          fetch('/api/analytics'),
+          fetch('/api/leads') // We still need recent leads
         ])
         
-        if (!leadsRes.ok || !projectsRes.ok) throw new Error("Failed to fetch data")
+        if (!analyticsRes.ok || !leadsRes.ok) throw new Error("Failed to fetch data")
         
-        const leads = await leadsRes.json()
-        const projects = await projectsRes.json()
+        const analytics = await analyticsRes.json()
+        const recentLeads = await leadsRes.json()
         
         const savedLeadsGoal = localStorage.getItem("leadsGoal")
         const savedCallsGoal = localStorage.getItem("callsGoal")
         
         if (savedLeadsGoal) setLeadsGoal(parseInt(savedLeadsGoal))
         if (savedCallsGoal) setCallsGoal(parseInt(savedCallsGoal))
-    
-    const now = new Date()
-    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
 
-    const leadsThisMonth = leads.filter((l: any) => new Date(l.createdAt) >= firstOfMonth).length
-    const jobsThisMonth = projects.filter((p: any) => new Date(p.createdAt) >= firstOfMonth).length
-    const callsToday = leads.filter((l: any) => new Date(l.createdAt).getTime() >= todayStart).length
-    
-    const closedWithLead = projects.filter((p: any) => p.leadId)
-    let totalDays = 0
-    closedWithLead.forEach((p: any) => {
-      const lead = leads.find((l: any) => l.id === p.leadId)
-      if (lead) {
-        const diff = new Date(p.createdAt).getTime() - new Date(lead.createdAt).getTime()
-        totalDays += diff / (1000 * 60 * 60 * 24)
-      }
-    })
-    const avgTimeToClose = closedWithLead.length > 0 ? totalDays / closedWithLead.length : 0
+        const chartColors = ["bg-blue-500", "bg-pink-500", "bg-emerald-500", "bg-amber-500", "bg-purple-500"]
+        const sourceData = analytics.sourceData.map((s: any, i: number) => ({
+          name: s.name,
+          value: s.percent,
+          color: chartColors[i % chartColors.length]
+        }))
 
-    const conversion = leads.length > 0 ? (projects.length / leads.length) * 100 : 0
+        // Mock service data for now since we don't have it in analytics yet
+        const serviceData = [
+          { name: "Restoration", value: 45, color: "bg-blue-500" },
+          { name: "Cleaning", value: 30, color: "bg-emerald-500" },
+          { name: "Repair", value: 25, color: "bg-amber-500" }
+        ]
 
-    const sourceCounts = leads.reduce((acc: any, l: any) => {
-      const s = l.source || "Referral"
-      acc[s] = (acc[s] || 0) + 1
-      return acc
-    }, {})
-    
-    const chartColors = ["bg-blue-500", "bg-pink-500", "bg-emerald-500", "bg-amber-500", "bg-purple-500"]
-    const sourceData = Object.entries(sourceCounts).map(([name, count]: [string, any], i) => ({
-      name,
-      value: Math.round((count / (leads.length || 1)) * 100),
-      color: chartColors[i % chartColors.length]
-    }))
-
-    const serviceCounts = projects.reduce((acc: any, p: any) => {
-      const type = p.name.split(' - ')[0] || "Other"
-      acc[type] = (acc[type] || 0) + 1
-      return acc
-    }, {})
-
-    const serviceData = Object.entries(serviceCounts).map(([name, count]: [string, any], i) => ({
-      name,
-      value: Math.round((count / (projects.length || 1)) * 100),
-      color: name === "Restoration" ? "bg-blue-500" : name === "Cleaning" ? "bg-emerald-500" : name === "Repair" ? "bg-amber-500" : "bg-purple-500"
-    }))
-
-    const topSource = Object.entries(sourceCounts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || "N/A"
-
-    const sortedLeads = leads.sort((a: any, b: any) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-
-      setStats({
-        leadCount: leads.length,
-        projectCount: projects.length,
-        topSource: topSource,
-        conversionRate: Math.round(conversion),
-        jobsThisMonth,
-        leadsThisMonth,
-        avgTimeToClose: Math.round(avgTimeToClose),
-        callsToday,
-        sourceData,
-        serviceData,
-        recentLeads: sortedLeads.slice(0, 5)
-      })
+        setStats({
+          leadCount: analytics.totalLeads,
+          projectCount: analytics.totalProjects,
+          topSource: analytics.sourceData[0]?.name || "N/A",
+          conversionRate: analytics.conversionRate,
+          jobsThisMonth: analytics.projectsThisMonth,
+          leadsThisMonth: analytics.leadsThisMonth,
+          avgTimeToClose: analytics.avgTimeToClose,
+          callsToday: analytics.leadsToday,
+          sourceData,
+          serviceData,
+          recentLeads: recentLeads.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          ).slice(0, 5)
+        })
       } catch (error) {
         console.error("Error fetching dashboard data:", error)
       } finally {

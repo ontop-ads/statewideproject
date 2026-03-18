@@ -28,33 +28,24 @@ export default function MarketingPage() {
     const fetchMarketingData = async () => {
       try {
         setIsLoading(true)
-        const res = await fetch('/api/leads')
-        if (!res.ok) throw new Error("Failed to fetch leads")
+        const res = await fetch('/api/analytics')
+        if (!res.ok) throw new Error("Failed to fetch analytics")
         
-        const leads = await res.json()
+        const analytics = await res.json()
       
-      const breakdown = leads.reduce((acc: any, lead: any) => {
-        const source = lead.source || "Referrals"
-        acc[source] = (acc[source] || 0) + 1
-        return acc
-      }, {})
-
       const updatedSources = data.sources.map(s => {
-        const count = breakdown[s.key] || 0
+        const sourceStat = analytics.sourceData.find((as: any) => as.name === s.key)
         
         return {
           ...s,
-          leads: count,
-          value: leads.length > 0 ? Math.round((count / leads.length) * 100) : 0
+          leads: sourceStat ? sourceStat.count : 0,
+          value: sourceStat ? sourceStat.percent : 0
         }
       })
 
-      const confirmedJobs = leads.filter((l: any) => l.status === "Confirmed Job").length
-      const leadQuality = leads.length > 0 ? Math.round((confirmedJobs / leads.length) * 100) : 0
-
         setData({
-          totalLeads: leads.length,
-          leadQuality,
+          totalLeads: analytics.totalLeads,
+          leadQuality: analytics.conversionRate,
           sources: updatedSources
         })
       } catch (error) {

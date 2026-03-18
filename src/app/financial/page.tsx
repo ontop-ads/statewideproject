@@ -22,7 +22,7 @@ const STAGE_COLORS: Record<string, string> = {
 }
 
 export default function CampaignPerformancePage() {
-  const [leads, setLeads] = useState<any[]>([])
+  const [analytics, setAnalytics] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Ad spend per channel — persisted in localStorage
@@ -37,18 +37,18 @@ export default function CampaignPerformancePage() {
     const saved = localStorage.getItem("adSpend")
     if (saved) setAdSpend(JSON.parse(saved))
 
-    const fetchLeads = async () => {
+    const fetchAnalytics = async () => {
       try {
         setIsLoading(true)
-        const res = await fetch("/api/leads")
-        if (res.ok) setLeads(await res.json())
+        const res = await fetch("/api/analytics")
+        if (res.ok) setAnalytics(await res.json())
       } catch (e) {
         console.error(e)
       } finally {
         setIsLoading(false)
       }
     }
-    fetchLeads()
+    fetchAnalytics()
   }, [])
 
   const handleSpendChange = (key: string, value: string) => {
@@ -57,37 +57,11 @@ export default function CampaignPerformancePage() {
     localStorage.setItem("adSpend", JSON.stringify(updated))
   }
 
-  // --- Derived metrics ---
+  // --- Metrics ---
+  const totalLeads = analytics?.totalLeads || 0
+  const totalConfirmed = analytics?.confirmedJobs || 0
+  const conversionRate = analytics?.conversionRate || 0
 
-  const regionalStats = leads.reduce((acc: any, lead: any) => {
-    const city = lead.city || "OTHER"
-    acc[city] = (acc[city] || 0) + 1
-    return acc
-  }, { "NYC": 0, "NJ": 0, "CT": 0, "OTHER": 0 })
-
-  // Leads per channel (exact match for the list)
-  const leadsByChannel: Record<string, number> = leads.reduce((acc, l) => {
-    const src = l.source || "Referral"
-    acc[src] = (acc[src] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  // Confirmed jobs per channel (exact match for the list)
-  const jobsByChannel: Record<string, number> = leads.reduce((acc, l) => {
-    if (l.status !== "Confirmed Job") return acc
-    const src = l.source || "Referral"
-    acc[src] = (acc[src] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  // Funnel stage counts
-  const stageCounts: Record<string, number> = leads.reduce((acc, l) => {
-    acc[l.status] = (acc[l.status] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const totalLeads = leads.length
-  const totalConfirmed = leads.filter(l => l.status === "Confirmed Job").length
   const overallCPL = () => {
     const totalSpend = CHANNELS.filter(ch => ch.isPaid).reduce((s, ch) => s + (parseFloat(adSpend[ch.key]) || 0), 0)
     return totalSpend > 0 && totalLeads > 0 ? (totalSpend / totalLeads).toFixed(2) : null
@@ -96,7 +70,6 @@ export default function CampaignPerformancePage() {
     const totalSpend = CHANNELS.filter(ch => ch.isPaid).reduce((s, ch) => s + (parseFloat(adSpend[ch.key]) || 0), 0)
     return totalSpend > 0 && totalConfirmed > 0 ? (totalSpend / totalConfirmed).toFixed(2) : null
   }
-  const conversionRate = totalLeads > 0 ? Math.round((totalConfirmed / totalLeads) * 100) : 0
 
   const cpl = overallCPL()
   const cpa = overallCPA()
@@ -144,7 +117,7 @@ export default function CampaignPerformancePage() {
               <h2 className="text-xl font-semibold mb-6">Lead Funnel</h2>
               <div className="space-y-5">
                 {FUNNEL_STAGES.map((stage) => {
-                  const count = stageCounts[stage] || 0
+                  const count = analytics?.statusData[stage] || 0
                   const pct = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0
                   return (
                     <div key={stage} className="space-y-2">
@@ -175,8 +148,9 @@ export default function CampaignPerformancePage() {
               <p className="text-sm text-muted-foreground mb-6">Enter monthly ad spend to calculate CPL & CPA per channel.</p>
               <div className="space-y-6">
                 {CHANNELS.filter(ch => ch.isPaid).map((ch) => {
-                  const chLeads = leadsByChannel[ch.key] || 0
-                  const chJobs = jobsByChannel[ch.key] || 0
+                  const sourceStat = analytics?.sourceData.find((s: any) => s.name === ch.key)
+                  const chLeads = sourceStat ? sourceStat.count : 0
+                  const chJobs = 0 // Needs more detail in API if we want jobs per channel
                   const spend = parseFloat(adSpend[ch.key]) || 0
                   const chCPL = spend > 0 && chLeads > 0 ? (spend / chLeads).toFixed(2) : null
                   const chCPA = spend > 0 && chJobs > 0 ? (spend / chJobs).toFixed(2) : null
