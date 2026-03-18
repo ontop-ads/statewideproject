@@ -36,7 +36,7 @@ export async function loginToSession(user: any) {
   cookieStore.set("session", session, {
     expires,
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false, // Alterado para false para funcionar via HTTP no VPS
     sameSite: "lax",
     path: "/",
   });
