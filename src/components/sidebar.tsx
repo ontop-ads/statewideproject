@@ -52,6 +52,14 @@ const roleColors: Record<string, string> = {
 export function Sidebar({ session }: { session: Session }) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
+
+  const handleLinkClick = () => setIsNavigating(true)
+
+  // Reset loading state when pathname changes
+  useEffect(() => {
+    setIsNavigating(false)
+  }, [pathname])
 
   const menuItems = allMenuItems.filter(item => item.roles.includes(session.role))
 
@@ -101,6 +109,8 @@ export function Sidebar({ session }: { session: Session }) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
+              onClick={handleLinkClick}
               className={cn(
                 "flex items-center gap-4 py-3 px-3 rounded-xl transition-all duration-200 group relative",
                 isActive 
@@ -195,9 +205,12 @@ export function Sidebar({ session }: { session: Session }) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
+              onClick={handleLinkClick}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all w-16",
-                isActive ? "text-primary-foreground bg-white/10" : "text-white/60 hover:text-white"
+                isActive ? "text-primary-foreground bg-white/10" : "text-white/60 hover:text-white",
+                isNavigating && !isActive ? "animate-pulse brightness-125" : ""
               )}
             >
               <item.icon size={20} className={cn(isActive ? "text-primary" : "")} />
