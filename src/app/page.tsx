@@ -3,6 +3,7 @@ import { Dashboard } from "./dashboard";
 
 export default async function HomePage() {
   const session = await getSession();
-  const role = session?.role ?? "OPERADOR";
+  if (!session) return null; // Middleware will handle redirect
+  const role = session.role;
   return <Dashboard role={role} />;
 }

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 // Only Admin and Financeiro can edit/delete projects
-const CAN_MANAGE_PROJECTS = ["ADMIN", "FINANCEIRO"];
+const CAN_MANAGE_PROJECTS = ["ADMIN", "FINANCE"];
 
 export async function PUT(
   request: Request,
@@ -11,7 +11,7 @@ export async function PUT(
 ) {
   const session = await getSession();
   if (!session || !CAN_MANAGE_PROJECTS.includes(session.role)) {
-    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   try {
@@ -19,11 +19,10 @@ export async function PUT(
     const id = parseInt(resolvedParams.id);
     const data = await request.json();
 
-    const updatedProject = await prisma.project.update({
+    const updatedProject = await (prisma.project as any).update({
       where: { id },
       data: {
         paymentStatus: data.paymentStatus,
-        assignedEmployee: data.assignedEmployee,
       },
     });
 
@@ -40,7 +39,7 @@ export async function DELETE(
 ) {
   const session = await getSession();
   if (!session || !CAN_MANAGE_PROJECTS.includes(session.role)) {
-    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   try {

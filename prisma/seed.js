@@ -9,9 +9,9 @@ async function main() {
 
   const users = [
     { name: 'Admin', email: 'admin@teste.com', password, role: 'ADMIN' },
-    { name: 'Financeiro', email: 'financeiro@teste.com', password, role: 'FINANCEIRO' },
+    { name: 'Finance', email: 'financeiro@teste.com', password, role: 'FINANCE' },
     { name: 'Marketing', email: 'marketing@teste.com', password, role: 'MARKETING' },
-    { name: 'Operador', email: 'operador@teste.com', password, role: 'OPERADOR' },
+    { name: 'Operator', email: 'operador@teste.com', password, role: 'OPERATOR' },
   ];
 
   for (const u of users) {

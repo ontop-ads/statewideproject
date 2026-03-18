@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { 
   LayoutDashboard, 
   Users, 
-  DollarSign, 
+  Target,
   Settings, 
   Menu,
   ChevronLeft,
@@ -19,7 +19,6 @@ import {
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { logoutAction } from "@/app/actions/auth"
-import { TrendingUp, TrendingDown } from "lucide-react"
 
 type Session = {
   id: number
@@ -29,25 +28,25 @@ type Session = {
 }
 
 const allMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/", roles: ["ADMIN", "FINANCEIRO", "MARKETING", "OPERADOR"] },
-  { icon: Users, label: "Leads", href: "/leads", roles: ["ADMIN", "FINANCEIRO", "MARKETING", "OPERADOR"] },
-  { icon: Briefcase, label: "Projects", href: "/projects", roles: ["ADMIN", "FINANCEIRO", "MARKETING", "OPERADOR"] },
-  { icon: DollarSign, label: "Financial", href: "/financial", roles: ["ADMIN", "FINANCEIRO"] },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/", roles: ["ADMIN", "FINANCE", "MARKETING", "OPERATOR"] },
+  { icon: Users, label: "Leads", href: "/leads", roles: ["ADMIN", "FINANCE", "MARKETING", "OPERATOR"] },
+  { icon: Briefcase, label: "Projects", href: "/projects", roles: ["ADMIN", "FINANCE", "MARKETING", "OPERATOR"] },
+  { icon: Target, label: "Campaign", href: "/financial", roles: ["ADMIN", "FINANCE", "MARKETING"] },
   { icon: BarChart3, label: "Marketing", href: "/marketing", roles: ["ADMIN", "MARKETING"] },
 ]
 
 const roleLabels: Record<string, string> = {
   ADMIN: "Administrator",
-  FINANCEIRO: "Financial",
+  FINANCE: "Financial",
   MARKETING: "Marketing",
-  OPERADOR: "Operator",
+  OPERATOR: "Operator",
 }
 
 const roleColors: Record<string, string> = {
   ADMIN: "bg-red-500/20 text-red-300",
-  FINANCEIRO: "bg-green-500/20 text-green-300",
+  FINANCE: "bg-green-500/20 text-green-300",
   MARKETING: "bg-purple-500/20 text-purple-300",
-  OPERADOR: "bg-blue-500/20 text-blue-300",
+  OPERATOR: "bg-blue-500/20 text-blue-300",
 }
 
 export function Sidebar({ session }: { session: Session }) {
@@ -55,43 +54,6 @@ export function Sidebar({ session }: { session: Session }) {
   const [collapsed, setCollapsed] = useState(false)
 
   const menuItems = allMenuItems.filter(item => item.roles.includes(session.role))
-  const [revenueStats, setRevenueStats] = useState({ current: 0, last: 0, growth: 0 })
-
-  useEffect(() => {
-    if (!["ADMIN", "FINANCEIRO"].includes(session.role)) return
-
-    const fetchRevenue = async () => {
-      try {
-        const res = await fetch('/api/projects')
-        if (!res.ok) return
-        const projects = await res.json()
-
-        const now = new Date()
-        const firstOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        const firstOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-        const lastOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
-
-        const currentMonthRevenue = projects
-          .filter((p: any) => new Date(p.createdAt) >= firstOfCurrentMonth)
-          .reduce((acc: number, p: any) => acc + (parseFloat(p.value?.replace(/[^0-9.-]+/g, "")) || 0), 0)
-
-        const lastMonthRevenue = projects
-          .filter((p: any) => {
-            const date = new Date(p.createdAt)
-            return date >= firstOfLastMonth && date <= lastOfLastMonth
-          })
-          .reduce((acc: number, p: any) => acc + (parseFloat(p.value?.replace(/[^0-9.-]+/g, "")) || 0), 0)
-
-        const growth = lastMonthRevenue > 0 ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
-
-        setRevenueStats({ current: currentMonthRevenue, last: lastMonthRevenue, growth })
-      } catch (err) {
-        console.error("Error fetching sidebar revenue:", err)
-      }
-    }
-
-    fetchRevenue()
-  }, [session.role])
 
   return (
     <>
@@ -167,39 +129,7 @@ export function Sidebar({ session }: { session: Session }) {
         })}
       </nav>
 
-      {/* Revenue Summary Section */}
-      {!collapsed && ["ADMIN", "FINANCEIRO"].includes(session.role) && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-4 mb-4 p-4 bg-white/5 rounded-2xl border border-white/10"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Revenue Summary</span>
-            <div className={cn(
-              "flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full",
-              revenueStats.growth >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
-            )}>
-              {revenueStats.growth >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-              {Math.abs(Math.round(revenueStats.growth))}%
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <div>
-              <p className="text-[10px] text-white/60 mb-0.5">This Month</p>
-              <h4 className="text-lg font-bold text-white leading-none">
-                ${revenueStats.current.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </h4>
-            </div>
-            
-            <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-              <span className="text-[10px] text-white/40">Last Month</span>
-              <span className="text-[11px] font-medium text-white/80">${revenueStats.last.toLocaleString()}</span>
-            </div>
-          </div>
-        </motion.div>
-      )}
+
 
         {/* User Profile & Logout */}
         <div className="p-4 border-t border-white/10 space-y-2">

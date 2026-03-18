@@ -12,10 +12,11 @@ const leadSchema = z.object({
   name: z.string().min(2, "Name is required"),
   phone: z.string().min(10, "Valid phone is required"),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
-  address: z.string().min(5, "Address is required"),
+  street: z.string().min(2, "Street is required"),
+  neighborhood: z.string().min(2, "Neighborhood is required"),
+  city: z.enum(["NYC", "NJ", "CT", "OTHER"]),
   source: z.string().min(1, "Please select a source"),
   serviceType: z.enum(["Restoration", "Antietch", "Cleaning", "Polishing", "Refinishing", "Regrout", "Maintenance", "Repair", "Commercial"]),
-  value: z.string().min(1, "Value is required"),
 })
 
 type LeadFormValues = z.infer<typeof leadSchema>
@@ -40,6 +41,9 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
     defaultValues: {
       source: "" as any,
       serviceType: "Restoration",
+      street: "",
+      neighborhood: "",
+      city: "" as any,
     }
   })
 
@@ -54,8 +58,11 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
         body: JSON.stringify(data),
       })
       
-      if (!res.ok) throw new Error("Failed to create lead")
-
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.details || errorData.error || "Failed to create lead")
+      }
+      
       alert("Lead created successfully for Statewide stone care!")
       
       // Force reload to update dashboard (temporary solution until full state management)
@@ -64,9 +71,9 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
       onClose()
       form.reset()
       setCurrentStep(1)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving lead:", error)
-      alert("Error saving lead. Please try again.")
+      alert(`Error saving lead: ${error.message}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -75,7 +82,7 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
   const nextStep = async () => {
     let fieldsToValidate: (keyof LeadFormValues)[] = []
     if (currentStep === 1) fieldsToValidate = ["name", "phone", "email"]
-    if (currentStep === 2) fieldsToValidate = ["address", "source"]
+    if (currentStep === 2) fieldsToValidate = ["street", "neighborhood", "city", "source"]
     
     const isValid = await form.trigger(fieldsToValidate)
     if (isValid) setCurrentStep(prev => prev + 1)
@@ -177,14 +184,39 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-4"
                 >
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Project Address</label>
-                    <textarea 
-                      {...form.register("address")}
-                      placeholder="Full service address"
-                      className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all min-h-[100px]"
-                    />
-                    {form.formState.errors.address && <p className="text-xs text-destructive">{form.formState.errors.address.message}</p>}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-medium">Street</label>
+                      <input 
+                        {...form.register("street")}
+                        placeholder="e.g. 123 Main St"
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                      />
+                      {form.formState.errors.street && <p className="text-xs text-destructive">{form.formState.errors.street.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Neighborhood</label>
+                      <input 
+                        {...form.register("neighborhood")}
+                        placeholder="e.g. Downtown"
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                      />
+                      {form.formState.errors.neighborhood && <p className="text-xs text-destructive">{form.formState.errors.neighborhood.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">City / Region</label>
+                      <select 
+                        {...form.register("city")}
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all appearance-none"
+                      >
+                        <option value="" disabled>Select a city</option>
+                        <option value="NYC">NYC</option>
+                        <option value="NJ">NJ</option>
+                        <option value="CT">CT</option>
+                        <option value="OTHER">OTHER</option>
+                      </select>
+                      {form.formState.errors.city && <p className="text-xs text-destructive">{form.formState.errors.city.message}</p>}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Lead Source</label>
@@ -194,7 +226,9 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
                     >
                       <option value="" disabled>Select a source</option>
                       <option value="Instagram">Instagram</option>
-                      <option value="Google">Google</option>
+                      <option value="Google Ads - NY">Google Ads - NY</option>
+                      <option value="Google Ads - NJ">Google Ads - NJ</option>
+                      <option value="Google Ads - Westchester">Google Ads - Westchester</option>
                       <option value="Referral">Referral</option>
                     </select>
                     {form.formState.errors.source && <p className="text-xs text-destructive">{form.formState.errors.source.message}</p>}
@@ -230,16 +264,6 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
                       ))}
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Estimated Job Value ($)</label>
-                    <input 
-                      {...form.register("value")}
-                      type="number"
-                      placeholder="0.00"
-                      className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                    />
-                    {form.formState.errors.value && <p className="text-xs text-destructive">{form.formState.errors.value.message}</p>}
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -247,6 +271,7 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
             <div className="flex items-center gap-4 pt-4 mt-8 border-t border-border">
               {currentStep > 1 && (
                 <button
+                  key="back-btn"
                   type="button"
                   onClick={() => setCurrentStep(prev => prev - 1)}
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-4 border border-border rounded-xl font-medium hover:bg-accent transition-all"
@@ -257,6 +282,7 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
               )}
               {currentStep < 3 ? (
                 <button
+                  key="next-btn"
                   type="button"
                   onClick={nextStep}
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
@@ -266,7 +292,9 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  key="submit-btn"
+                  type="button"
+                  onClick={form.handleSubmit(onSubmit)}
                   disabled={isSubmitting}
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
                 >

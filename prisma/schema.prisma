@@ -12,7 +12,7 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      String   @default("OPERADOR") // ADMIN, FINANCEIRO, MARKETING, OPERADOR
+  role      String   @default("OPERATOR") // ADMIN, FINANCE, MARKETING, OPERATOR
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -24,9 +24,11 @@ model Lead {
   phone       String
   serviceType String
   status      String    @default("New")
-  value       String
+  value       String?   @default("")
   source      String    @default("Referral")
-  address     String
+  street      String?   @default("")
+  neighborhood String? @default("")
+  city        String?   @default("")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   projects    Project[]
@@ -37,11 +39,8 @@ model Project {
   leadId        Int?
   name          String
   client        String
-  value         String
-  deadline      String   @default("TBD")
   status        String   @default("Planning")
   paymentStatus String   @default("Unpaid")
-  assignedEmployee String? @default("Unassigned")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

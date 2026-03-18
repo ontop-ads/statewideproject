@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Role = "ADMIN" | "FINANCEIRO" | "MARKETING" | "OPERADOR";
+type Role = "ADMIN" | "FINANCE" | "MARKETING" | "OPERATOR";
 
 interface User {
   id: number;
@@ -25,20 +25,20 @@ interface User {
   createdAt: string;
 }
 
-const ROLES: Role[] = ["ADMIN", "FINANCEIRO", "MARKETING", "OPERADOR"];
+const ROLES: Role[] = ["ADMIN", "FINANCE", "MARKETING", "OPERATOR"];
 
 const roleLabels: Record<Role, string> = {
   ADMIN: "Administrator",
-  FINANCEIRO: "Financial",
+  FINANCE: "Financial",
   MARKETING: "Marketing",
-  OPERADOR: "Operator",
+  OPERATOR: "Operator",
 };
 
 const roleColors: Record<Role, string> = {
   ADMIN: "bg-red-500/15 text-red-400 border-red-500/20",
-  FINANCEIRO: "bg-green-500/15 text-green-400 border-green-500/20",
+  FINANCE: "bg-green-500/15 text-green-400 border-green-500/20",
   MARKETING: "bg-purple-500/15 text-purple-400 border-purple-500/20",
-  OPERADOR: "bg-blue-500/15 text-blue-400 border-blue-500/20",
+  OPERATOR: "bg-blue-500/15 text-blue-400 border-blue-500/20",
 };
 
 interface UserFormData {
@@ -52,7 +52,7 @@ const emptyForm: UserFormData = {
   name: "",
   email: "",
   password: "",
-  role: "OPERADOR",
+  role: "OPERATOR",
 };
 
 function UserModal({

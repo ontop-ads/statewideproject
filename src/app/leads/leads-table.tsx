@@ -13,7 +13,6 @@ interface Lead {
   phone: string
   serviceType: string
   status: LeadStatus
-  value: string
   source: string
   address: string
   createdAt: string
@@ -81,8 +80,6 @@ export function LeadsTable({ role }: { role: string }) {
       if (!res.ok) throw new Error("Update failed")
 
       if (newStatus === "Confirmed Job" && oldLead.status !== "Confirmed Job") {
-        const employeeName = prompt("Which employee is assigned to this project?", "Unassigned");
-        
         await fetch('/api/projects', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -90,10 +87,13 @@ export function LeadsTable({ role }: { role: string }) {
             leadId: id,
             name: `${oldLead.serviceType} - ${oldLead.name}`,
             client: oldLead.name,
-            value: oldLead.value,
-            assignedEmployee: employeeName || "Unassigned",
           })
         })
+      }
+
+      // If reverting away from Confirmed Job, delete the linked project
+      if (oldLead.status === "Confirmed Job" && newStatus !== "Confirmed Job") {
+        await fetch(`/api/projects/by-lead/${id}`, { method: 'DELETE' })
       }
     } catch (error) {
       console.error("Failed to update status", error)
@@ -157,7 +157,6 @@ export function LeadsTable({ role }: { role: string }) {
                 <th className="p-4 font-semibold text-sm border-b border-border">Name</th>
                 <th className="p-4 font-semibold text-sm border-b border-border">Contact</th>
                 <th className="p-4 font-semibold text-sm border-b border-border">Service</th>
-                <th className="p-4 font-semibold text-sm border-b border-border">Value</th>
                 <th className="p-4 font-semibold text-sm border-b border-border">Status</th>
                 <th className="p-4 font-semibold text-sm border-b border-border">Date</th>
                 {canDelete && (
@@ -182,7 +181,6 @@ export function LeadsTable({ role }: { role: string }) {
                     </div>
                   </td>
                   <td className="p-4 border-b border-border text-xs font-medium">{lead.serviceType}</td>
-                  <td className="p-4 border-b border-border font-bold">${parseFloat(lead.value).toLocaleString()}</td>
                   <td className="p-4 border-b border-border">
                     {canChangeStatus ? (
                       <select 

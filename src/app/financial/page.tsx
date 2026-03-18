@@ -1,219 +1,279 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, Briefcase } from "lucide-react"
+import { Target, Users, TrendingUp, DollarSign, Funnel, BarChart3 } from "lucide-react"
 
-export default function FinancialPage() {
-  const [stats, setStats] = useState({
-    totalRevenue: 0,
-    pipelineValue: 0,
-    averageJob: 0,
-    projectsCount: 0,
-    revenuePerLead: 0,
-    jobsThisMonth: 0,
-    avgTimeToClose: 0, // days
-    serviceDistribution: [] as any[],
-    monthlyData: [] as number[]
-  })
-  
+const CHANNELS = [
+  { key: "Google Ads - NY", label: "Google Ads - NY", color: "bg-blue-600", textColor: "text-blue-600", border: "border-blue-600/20", isPaid: true },
+  { key: "Google Ads - NJ", label: "Google Ads - NJ", color: "bg-orange-500", textColor: "text-orange-500", border: "border-orange-500/20", isPaid: true },
+  { key: "Google Ads - Westchester", label: "Google Ads - Westchester", color: "bg-purple-500", textColor: "text-purple-500", border: "border-purple-500/20", isPaid: true },
+
+  { key: "Instagram", label: "Instagram", color: "bg-pink-500", textColor: "text-pink-500", border: "border-pink-500/20", isPaid: true },
+  { key: "Referral", label: "Referral / Organic", color: "bg-emerald-500", textColor: "text-emerald-500", border: "border-emerald-500/20", isPaid: false },
+]
+
+const FUNNEL_STAGES = ["New", "Sent to Jobber", "Quote Sent", "Confirmed Job", "Declined"]
+const STAGE_COLORS: Record<string, string> = {
+  "New": "bg-blue-500",
+  "Sent to Jobber": "bg-amber-500",
+  "Quote Sent": "bg-emerald-500",
+  "Confirmed Job": "bg-purple-500",
+  "Declined": "bg-red-500",
+}
+
+export default function CampaignPerformancePage() {
+  const [leads, setLeads] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  // Ad spend per channel — persisted in localStorage
+  const [adSpend, setAdSpend] = useState<Record<string, string>>({
+    "Google Ads - NY": "",
+    "Google Ads - NJ": "",
+    "Google Ads - Westchester": "",
+    "Instagram": "",
+  })
+
   useEffect(() => {
-    const fetchFinancialData = async () => {
+    const saved = localStorage.getItem("adSpend")
+    if (saved) setAdSpend(JSON.parse(saved))
+
+    const fetchLeads = async () => {
       try {
         setIsLoading(true)
-        const [projectsRes, leadsRes] = await Promise.all([
-          fetch('/api/projects'),
-          fetch('/api/leads')
-        ])
-        
-        if (!projectsRes.ok || !leadsRes.ok) throw new Error("Failed to fetch data")
-        
-        const projects = await projectsRes.json()
-        const leads = await leadsRes.json()
-        
-        const now = new Date()
-        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        
-      const totalRevenue = projects.reduce((acc: number, p: any) => {
-        const valueStr = p.value || "0"
-        return acc + (parseFloat(valueStr.replace(/[^0-9.-]+/g, "")) || 0)
-      }, 0)
-
-      const pipelineValue = leads.reduce((acc: number, l: any) => {
-        const valueStr = l.value || "0"
-        return acc + (parseFloat(valueStr.replace(/[^0-9.-]+/g, "")) || 0)
-      }, 0)
-      
-      const avg = projects.length > 0 ? totalRevenue / projects.length : 0
-      const revenuePerLead = leads.length > 0 ? totalRevenue / leads.length : 0
-      const jobsThisMonth = projects.filter((p: any) => new Date(p.createdAt) >= firstOfMonth).length
-      
-      // Calculate Monthly Data for the chart (All projects by default to show progress)
-      const monthlyRevenue = new Array(12).fill(0)
-      const currentYear = now.getFullYear()
-      projects.forEach((p: any) => {
-        const date = new Date(p.createdAt)
-        if (date.getFullYear() === currentYear) {
-          const month = date.getMonth()
-          const val = parseFloat((p.value || "0").replace(/[^0-9.-]+/g, "")) || 0
-          monthlyRevenue[month] += val
-        }
-      })
-
-      // Avg Time to close (simplified: diff between lead creation and project creation)
-      const closedWithLead = projects.filter((p: any) => p.leadId)
-      let totalDays = 0
-      closedWithLead.forEach((p: any) => {
-        const lead = leads.find((l: any) => l.id === p.leadId)
-        if (lead) {
-          const diff = new Date(p.createdAt).getTime() - new Date(lead.createdAt).getTime()
-          totalDays += diff / (1000 * 60 * 60 * 24)
-        }
-      })
-      const avgTimeToClose = closedWithLead.length > 0 ? totalDays / closedWithLead.length : 0
-
-      // Calculate Service Distribution
-      const services = projects.reduce((acc: any, p: any) => {
-        const type = p.name.split(' - ')[0] || "Others"
-        acc[type] = (acc[type] || 0) + 1
-        return acc
-      }, {})
-      
-      const distribution = Object.entries(services).map(([label, count]: [string, any]) => ({
-        label,
-        value: Math.round((count / projects.length) * 100),
-        color: label === "Restoration" ? "bg-blue-500" : label === "Cleaning" ? "bg-emerald-500" : "bg-purple-500"
-      }))
-
-      setStats({
-        totalRevenue,
-        pipelineValue,
-        averageJob: Math.round(avg),
-        projectsCount: projects.length,
-        revenuePerLead: Math.round(revenuePerLead),
-        jobsThisMonth,
-        avgTimeToClose: Math.round(avgTimeToClose),
-        serviceDistribution: distribution,
-        monthlyData: monthlyRevenue
-      })
-    } catch (error) {
-      console.error("Error fetching financial data:", error)
-    } finally {
-      setIsLoading(false)
+        const res = await fetch("/api/leads")
+        if (res.ok) setLeads(await res.json())
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }
-  
-  fetchFinancialData()
+    fetchLeads()
   }, [])
 
-  const statCards = [
-    { label: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, trend: "Contracted", positive: true },
-    { label: "Pipeline Value", value: `$${stats.pipelineValue.toLocaleString()}`, icon: Briefcase, trend: "Open Leads", positive: true },
-    { label: "Rev per Lead", value: `$${stats.revenuePerLead.toLocaleString()}`, icon: TrendingUp, trend: "Average", positive: true },
+  const handleSpendChange = (key: string, value: string) => {
+    const updated = { ...adSpend, [key]: value }
+    setAdSpend(updated)
+    localStorage.setItem("adSpend", JSON.stringify(updated))
+  }
+
+  // --- Derived metrics ---
+
+  const regionalStats = leads.reduce((acc: any, lead: any) => {
+    const city = lead.city || "OTHER"
+    acc[city] = (acc[city] || 0) + 1
+    return acc
+  }, { "NYC": 0, "NJ": 0, "CT": 0, "OTHER": 0 })
+
+  // Leads per channel (exact match for the list)
+  const leadsByChannel: Record<string, number> = leads.reduce((acc, l) => {
+    const src = l.source || "Referral"
+    acc[src] = (acc[src] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  // Confirmed jobs per channel (exact match for the list)
+  const jobsByChannel: Record<string, number> = leads.reduce((acc, l) => {
+    if (l.status !== "Confirmed Job") return acc
+    const src = l.source || "Referral"
+    acc[src] = (acc[src] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  // Funnel stage counts
+  const stageCounts: Record<string, number> = leads.reduce((acc, l) => {
+    acc[l.status] = (acc[l.status] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const totalLeads = leads.length
+  const totalConfirmed = leads.filter(l => l.status === "Confirmed Job").length
+  const overallCPL = () => {
+    const totalSpend = CHANNELS.filter(ch => ch.isPaid).reduce((s, ch) => s + (parseFloat(adSpend[ch.key]) || 0), 0)
+    return totalSpend > 0 && totalLeads > 0 ? (totalSpend / totalLeads).toFixed(2) : null
+  }
+  const overallCPA = () => {
+    const totalSpend = CHANNELS.filter(ch => ch.isPaid).reduce((s, ch) => s + (parseFloat(adSpend[ch.key]) || 0), 0)
+    return totalSpend > 0 && totalConfirmed > 0 ? (totalSpend / totalConfirmed).toFixed(2) : null
+  }
+  const conversionRate = totalLeads > 0 ? Math.round((totalConfirmed / totalLeads) * 100) : 0
+
+  const cpl = overallCPL()
+  const cpa = overallCPA()
+
+  const summaryCards = [
+    { label: "Total Leads", value: totalLeads.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Confirmed Jobs", value: totalConfirmed.toString(), icon: Target, color: "text-purple-500", bg: "bg-purple-500/10" },
+    { label: "Conversion Rate", value: `${conversionRate}%`, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Cost Per Lead (CPL)", value: cpl ? `$${cpl}` : "—", icon: DollarSign, color: "text-amber-500", bg: "bg-amber-500/10", hint: cpl ? "" : "Enter ad spend below" },
+    { label: "Cost Per Acquisition (CPA)", value: cpa ? `$${cpa}` : "—", icon: BarChart3, color: "text-pink-500", bg: "bg-pink-500/10", hint: cpa ? "" : "Enter ad spend below" },
   ]
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Financial Overview</h1>
-        <p className="text-muted-foreground mt-1">Track your revenue and financial performance.</p>
+        <h1 className="text-3xl font-bold text-foreground">Campaign Performance</h1>
+        <p className="text-muted-foreground mt-1">Lead attribution, funnel analytics, and ad spend efficiency.</p>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center p-24 text-muted-foreground animate-pulse">
-          Loading financial data...
-
+          Loading campaign data...
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {statCards.map((stat, i) => (
-              <div key={i} className="bg-card border border-border p-6 rounded-2xl">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-primary/10 text-primary rounded-xl">
-                    <stat.icon size={24} />
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {summaryCards.map((card, i) => (
+              <div key={i} className="bg-card border border-border p-5 rounded-2xl">
+                <div className="flex items-start justify-between mb-3">
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{card.label}</p>
+                  <div className={`${card.bg} ${card.color} p-2 rounded-lg`}>
+                    <card.icon size={16} />
                   </div>
-                  {stat.trend && (
-                    <div className={`flex items-center gap-1 text-sm font-medium ${stat.positive ? 'text-emerald-500' : 'text-destructive'}`}>
-                      {stat.trend}
-                      {stat.positive ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
-                    </div>
-                  )}
                 </div>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <h3 className="text-3xl font-bold mt-1">{stat.value}</h3>
+                <h3 className="text-2xl font-bold">{card.value}</h3>
+                {card.hint && <p className="text-[10px] text-muted-foreground mt-1 italic">{card.hint}</p>}
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="bg-card border border-border rounded-2xl p-4 md:p-8 lg:col-span-2 overflow-hidden">
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold">Revenue Pipeline</h2>
-                  <p className="text-sm text-muted-foreground">Monthly growth and projections</p>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-primary" />
-                    <span className="text-xs text-muted-foreground">Actual</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-primary/30" />
-                    <span className="text-xs text-muted-foreground">Projection</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="relative h-64 w-full flex items-end gap-1 md:gap-2 px-2 md:px-4 pt-8 overflow-x-auto">
-                {/* Reset bar heights to a minimum or 0 */}
-                {[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((height, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative min-w-[20px]">
-                    <div 
-                      className="w-full bg-primary/20 rounded-t-sm group-hover:bg-primary/40 transition-all flex items-end justify-center"
-                      style={{ height: `${Math.max(stats.monthlyData[i] / 500, 4)}px` }}
-                    >
-                      <div 
-                        className="w-full bg-primary rounded-t-sm" 
-                        style={{ height: `2px` }} 
-                      />
-                      <div className="absolute -top-8 bg-foreground text-background text-[10px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 w-max">
-                        ${stats.monthlyData[i].toLocaleString()}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Lead Funnel */}
+            <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
+              <h2 className="text-xl font-semibold mb-6">Lead Funnel</h2>
+              <div className="space-y-5">
+                {FUNNEL_STAGES.map((stage) => {
+                  const count = stageCounts[stage] || 0
+                  const pct = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0
+                  return (
+                    <div key={stage} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground font-medium">{stage}</span>
+                        <span className="font-bold">{count} <span className="text-muted-foreground font-normal text-xs">({pct}%)</span></span>
+                      </div>
+                      <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${STAGE_COLORS[stage]} transition-all duration-700`}
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-medium">
-                      {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'][i]}
-                    </span>
-                  </div>
-                ))}
+                  )
+                })}
+              </div>
+              <div className="mt-8 p-4 bg-muted rounded-xl text-center">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-bold text-foreground">{conversionRate}%</span> of all leads converted to Confirmed Jobs
+                </p>
               </div>
             </div>
 
-            <div className="bg-card border border-border rounded-2xl p-4 md:p-8">
-              <h2 className="text-xl font-semibold mb-6">Service Distribution</h2>
+            {/* Channel Performance */}
+            <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
+              <h2 className="text-xl font-semibold mb-2">Channel Performance</h2>
+              <p className="text-sm text-muted-foreground mb-6">Enter monthly ad spend to calculate CPL & CPA per channel.</p>
               <div className="space-y-6">
-                {stats.serviceDistribution.length > 0 ? stats.serviceDistribution.map((service, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground font-medium">{service.label}</span>
-                      <span className="font-bold">{service.value}%</span>
+                {CHANNELS.filter(ch => ch.isPaid).map((ch) => {
+                  const chLeads = leadsByChannel[ch.key] || 0
+                  const chJobs = jobsByChannel[ch.key] || 0
+                  const spend = parseFloat(adSpend[ch.key]) || 0
+                  const chCPL = spend > 0 && chLeads > 0 ? (spend / chLeads).toFixed(2) : null
+                  const chCPA = spend > 0 && chJobs > 0 ? (spend / chJobs).toFixed(2) : null
+                  const pct = totalLeads > 0 ? Math.round((chLeads / totalLeads) * 100) : 0
+
+                  return (
+                    <div key={ch.key} className={`border ${ch.border} rounded-xl p-4 space-y-3`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2.5 h-2.5 rounded-full ${ch.color}`} />
+                          <span className="font-semibold text-sm">{ch.label}</span>
+                        </div>
+                        <span className={`text-xs font-bold ${ch.textColor}`}>{chLeads} leads · {pct}%</span>
+                      </div>
+
+                      {/* Ad spend input */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground text-sm">$</span>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Monthly ad spend"
+                          value={adSpend[ch.key]}
+                          onChange={(e) => handleSpendChange(ch.key, e.target.value)}
+                          className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-full"
+                        />
+                      </div>
+
+                      {/* CPL / CPA */}
+                      <div className="grid grid-cols-2 gap-2 text-center">
+                        <div className="bg-muted rounded-lg p-2">
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">CPL</p>
+                          <p className="font-bold text-sm">{chCPL ? `$${chCPL}` : "—"}</p>
+                        </div>
+                        <div className="bg-muted rounded-lg p-2">
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">CPA</p>
+                          <p className="font-bold text-sm">{chCPA ? `$${chCPA}` : "—"}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full ${service.color}`} 
-                        style={{ width: `${service.value}%` }} 
-                      />
-                    </div>
-                  </div>
-                )) : (
-                  <p className="text-sm text-muted-foreground italic">No project data available yet.</p>
-                )}
+                  )
+                })}
               </div>
-              <div className="mt-12 p-4 bg-muted rounded-xl text-center">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Based on the last <span className="text-foreground font-bold">180 days</span> of completed projects.
-                </p>
+            </div>
+          </div>
+
+          {/* Lead Source Attribution Bar */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
+              <h2 className="text-xl font-semibold mb-6">Lead Source Attribution</h2>
+              <div className="space-y-4">
+                {CHANNELS.map((ch) => {
+                  const count = leadsByChannel[ch.key] || 0
+                  const pct = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0
+                  return (
+                    <div key={ch.key} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground font-medium">{ch.label}</span>
+                        <span className="font-bold">{count} leads <span className="text-muted-foreground font-normal">({pct}%)</span></span>
+                      </div>
+                      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                        <div className={`h-full ${ch.color} transition-all duration-700`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Regional Distribution */}
+            <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
+              <h2 className="text-xl font-semibold mb-6">Regional Distribution (City)</h2>
+              <div className="space-y-4">
+                {(() => {
+                  const regionals = leads.reduce((acc: Record<string, number>, lead: any) => {
+                    const city = lead.city || "OTHER"
+                    acc[city] = (acc[city] || 0) + 1
+                    return acc
+                  }, { "NYC": 0, "NJ": 0, "CT": 0, "OTHER": 0 })
+                  
+                  return Object.entries(regionals)
+                    .map(([city, count]) => {
+                      const pct = totalLeads > 0 ? Math.round((count as number / totalLeads) * 100) : 0
+                      return (
+                        <div key={city} className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground font-medium">{city}</span>
+                            <span className="font-bold">{(count as number)} leads <span className="text-muted-foreground font-normal">({pct}%)</span></span>
+                          </div>
+                          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                            <div className="h-full bg-primary/40 transition-all duration-700" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      )
+                    })
+                })()}
+                {leads.length === 0 && <p className="text-sm text-muted-foreground italic text-center py-4">No leads to display</p>}
               </div>
             </div>
           </div>

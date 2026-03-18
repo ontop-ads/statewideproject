@@ -11,7 +11,7 @@ export async function PUT(
 ) {
   const session = await getSession();
   if (!session || !CAN_MUTATE_LEADS.includes(session.role)) {
-    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   try {
@@ -39,7 +39,7 @@ export async function DELETE(
 ) {
   const session = await getSession();
   if (!session || !CAN_MUTATE_LEADS.includes(session.role)) {
-    return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   try {

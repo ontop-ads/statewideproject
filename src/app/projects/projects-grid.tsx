@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { 
-  Briefcase, 
+  Briefcase,
   Calendar, 
-  DollarSign, 
   Trash2, 
   User, 
   X, 
@@ -17,18 +16,15 @@ import {
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 
-const CAN_MANAGE = ["ADMIN", "FINANCEIRO"]
+const CAN_MANAGE = ["ADMIN", "FINANCE"]
 
 interface Project {
   id: number
   leadId: number | null
   name: string
   client: string
-  value: string
-  deadline: string
   status: string
   paymentStatus: string
-  assignedEmployee: string | null
   createdAt: string
   lead?: {
     phone: string
@@ -39,87 +35,7 @@ interface Project {
   } | null
 }
 
-function EmployeeModal({ 
-  isOpen, 
-  currentName, 
-  onClose, 
-  onSave 
-}: { 
-  isOpen: boolean, 
-  currentName: string, 
-  onClose: () => void, 
-  onSave: (name: string) => Promise<void> 
-}) {
-  const [name, setName] = useState(currentName || "")
-  const [isSaving, setIsSaving] = useState(false)
 
-  useEffect(() => {
-    if (isOpen) setName(currentName || "")
-  }, [isOpen, currentName])
-
-  if (!isOpen) return null
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSaving(true)
-    await onSave(name)
-    setIsSaving(false)
-    onClose()
-  }
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-      />
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl p-6"
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">Assign Employee</h2>
-          <button onClick={onClose} className="p-2 hover:bg-accent rounded-full transition-colors">
-            <X size={18} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Employee Name</label>
-            <input 
-              autoFocus
-              className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-              placeholder="e.g. John Smith"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button 
-              type="button" 
-              onClick={onClose}
-              className="flex-1 py-3 border border-border rounded-xl font-medium hover:bg-accent transition-all"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit"
-              disabled={isSaving}
-              className="flex-1 py-3 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-            >
-              {isSaving ? "Saving..." : <><Check size={18} /> Save</>}
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
-  )
-}
 
 function DetailsModal({ 
   project, 
@@ -167,18 +83,7 @@ function DetailsModal({
             <section>
               <h3 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Project Information</h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2"><DollarSign size={16} /> Contract Value</span>
-                  <span className="font-bold text-lg">{project.value}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2"><Calendar size={16} /> Deadline</span>
-                  <span className="font-medium underline decoration-primary/30 decoration-2 underline-offset-4">{project.deadline}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2"><User size={16} /> Assigned to</span>
-                  <span className="font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{project.assignedEmployee || "Unassigned"}</span>
-                </div>
+
                 <div className="flex items-center justify-between text-sm">
                    <span className="text-muted-foreground flex items-center gap-2"><Clock size={16} /> Created at</span>
                    <span className="font-medium text-muted-foreground">{new Date(project.createdAt).toLocaleDateString()}</span>
@@ -253,7 +158,6 @@ export function ProjectsGrid({ role }: { role: string }) {
   const [isLoading, setIsLoading] = useState(true)
   
   // Modal states
-  const [editingEmployeeProject, setEditingEmployeeProject] = useState<Project | null>(null)
   const [viewingProject, setViewingProject] = useState<Project | null>(null)
 
   const canDelete = CAN_MANAGE.includes(role)
@@ -317,21 +221,7 @@ export function ProjectsGrid({ role }: { role: string }) {
     }
   }
 
-  const handleUpdateEmployee = async (name: string) => {
-    if (!editingEmployeeProject) return
-    const id = editingEmployeeProject.id
-    
-    try {
-      setProjects(projects.map(p => p.id === id ? { ...p, assignedEmployee: name } : p))
-      await fetch(`/api/projects/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignedEmployee: name })
-      })
-    } catch (err) {
-      console.error("Update failed", err)
-    }
-  }
+
 
   return (
     <div className="space-y-8">
@@ -392,37 +282,8 @@ export function ProjectsGrid({ role }: { role: string }) {
             <p className="text-sm text-muted-foreground mb-4">{project.client}</p>
             
             <div className="space-y-3 pt-4 border-t border-border flex-grow">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <DollarSign size={16} />
-                  Contract Value
-                </div>
-                <span className="font-semibold">{project.value}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar size={16} />
-                  Deadline
-                </div>
-                <span className="font-medium">{project.deadline}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <User size={16} />
-                  Employee
-                </div>
-                {canTogglePayment ? (
-                  <button 
-                    onClick={() => setEditingEmployeeProject(project)}
-                    className="font-medium hover:text-primary transition-colors cursor-pointer group/emp flex items-center gap-1.5"
-                  >
-                    {project.assignedEmployee || "Unassigned"}
-                    <motion.span initial={{ opacity: 0 }} whileHover={{ opacity: 1 }} className="text-[8px] border border-primary/30 px-1 rounded text-primary">Edit</motion.span>
-                  </button>
-                ) : (
-                  <span className="font-medium">{project.assignedEmployee || "Unassigned"}</span>
-                )}
-              </div>
+
+
             </div>
 
             <button 
@@ -448,14 +309,7 @@ export function ProjectsGrid({ role }: { role: string }) {
 
       {/* Modals */}
       <AnimatePresence>
-        {editingEmployeeProject && (
-          <EmployeeModal 
-            isOpen={!!editingEmployeeProject}
-            currentName={editingEmployeeProject.assignedEmployee || ""}
-            onClose={() => setEditingEmployeeProject(null)}
-            onSave={handleUpdateEmployee}
-          />
-        )}
+
         {viewingProject && (
           <DetailsModal 
             project={viewingProject}

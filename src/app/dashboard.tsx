@@ -1,29 +1,26 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { PlusCircle, Search, TrendingUp, Users, Briefcase, DollarSign, Clock, Phone, Target } from "lucide-react"
+import { PlusCircle, Search, TrendingUp, Users, Briefcase, Clock, Phone, Target } from "lucide-react"
 import { AddLeadModal } from "@/components/add-lead-modal"
 import { cn } from "@/lib/utils"
 
 // Roles that can add leads
-const CAN_ADD_LEADS = ["ADMIN", "MARKETING", "OPERADOR"]
+const CAN_ADD_LEADS = ["ADMIN", "MARKETING", "OPERATOR"]
 
 export function Dashboard({ role }: { role: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [monthlyGoal, setMonthlyGoal] = useState(15000)
+  const [leadsGoal, setLeadsGoal] = useState(50)
   const [callsGoal, setCallsGoal] = useState(5)
   const [stats, setStats] = useState({
     leadCount: 0,
     projectCount: 0,
-    recentValue: 0,
-    totalRevenue: 0,
-    monthRevenue: 0,
     topSource: "N/A",
     conversionRate: 0,
-    revenuePerLead: 0,
     jobsThisMonth: 0,
     avgTimeToClose: 0,
     callsToday: 0,
+    leadsThisMonth: 0,
     sourceData: [] as { name: string, value: number, color: string }[],
     serviceData: [] as { name: string, value: number, color: string }[],
     recentLeads: [] as any[]
@@ -47,29 +44,18 @@ export function Dashboard({ role }: { role: string }) {
         const leads = await leadsRes.json()
         const projects = await projectsRes.json()
         
-        const savedGoal = localStorage.getItem("monthlyGoal")
+        const savedLeadsGoal = localStorage.getItem("leadsGoal")
         const savedCallsGoal = localStorage.getItem("callsGoal")
         
-        if (savedGoal) setMonthlyGoal(parseInt(savedGoal))
+        if (savedLeadsGoal) setLeadsGoal(parseInt(savedLeadsGoal))
         if (savedCallsGoal) setCallsGoal(parseInt(savedCallsGoal))
     
     const now = new Date()
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
 
-    const totalPipeline = leads.reduce((acc: number, lead: any) => acc + (parseFloat(lead.value) || 0), 0)
-    
-    // Changing to count all projects as contracted revenue (as per user request "Valor Total Contratado")
-    const monthRevenue = projects
-      .filter((p: any) => new Date(p.createdAt) >= firstOfMonth)
-      .reduce((acc: number, p: any) => acc+ (parseFloat(p.value?.replace(/[^0-9.-]+/g, "")) || 0), 0)
-
-    const totalRevenue = projects
-      .reduce((acc: number, p: any) => acc + (parseFloat(p.value?.replace(/[^0-9.-]+/g, "")) || 0), 0)
-
-    const revenuePerLead = leads.length > 0 ? totalRevenue / leads.length : 0
+    const leadsThisMonth = leads.filter((l: any) => new Date(l.createdAt) >= firstOfMonth).length
     const jobsThisMonth = projects.filter((p: any) => new Date(p.createdAt) >= firstOfMonth).length
-    
     const callsToday = leads.filter((l: any) => new Date(l.createdAt).getTime() >= todayStart).length
     
     const closedWithLead = projects.filter((p: any) => p.leadId)
@@ -119,13 +105,10 @@ export function Dashboard({ role }: { role: string }) {
       setStats({
         leadCount: leads.length,
         projectCount: projects.length,
-        recentValue: totalPipeline,
-        totalRevenue: totalRevenue,
-        monthRevenue: monthRevenue,
         topSource: topSource,
         conversionRate: Math.round(conversion),
-        revenuePerLead: Math.round(revenuePerLead),
         jobsThisMonth,
+        leadsThisMonth,
         avgTimeToClose: Math.round(avgTimeToClose),
         callsToday,
         sourceData,
@@ -142,12 +125,12 @@ export function Dashboard({ role }: { role: string }) {
     fetchData()
   }, [])
 
-  const handleUpdateGoal = () => {
-    const newGoal = prompt("Enter new monthly goal ($):", monthlyGoal.toString())
+  const handleUpdateLeadsGoal = () => {
+    const newGoal = prompt("Enter monthly leads goal:", leadsGoal.toString())
     if (newGoal && !isNaN(parseInt(newGoal))) {
       const g = parseInt(newGoal)
-      setMonthlyGoal(g)
-      localStorage.setItem("monthlyGoal", g.toString())
+      setLeadsGoal(g)
+      localStorage.setItem("leadsGoal", g.toString())
     }
   }
 
@@ -161,27 +144,28 @@ export function Dashboard({ role }: { role: string }) {
   }
 
   const statCards = [
-    { label: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-500/10", subtitle: "Total Contracted" },
-    { label: "Pipeline Value", value: `$${stats.recentValue.toLocaleString()}`, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-500/10", subtitle: "Open Estimates" },
+    { label: "Total Leads", value: stats.leadCount.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-500/10", subtitle: "All time" },
+    { label: "Conversion Rate", value: `${stats.conversionRate}%`, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10", subtitle: "Leads → Confirmed Jobs" },
+    { label: "Top Channel", value: stats.topSource, icon: Briefcase, color: "text-purple-500", bg: "bg-purple-500/10", subtitle: "Best lead source" },
     { 
-      label: "Monthly Goal", 
-      value: `$${monthlyGoal.toLocaleString()}`, 
+      label: "Leads This Month", 
+      value: stats.leadsThisMonth.toString(), 
       icon: Target, 
       color: "text-amber-500", 
       bg: "bg-amber-500/10", 
-      subtitle: `${Math.round((stats.monthRevenue/monthlyGoal)*100)}% reached`,
-      onClick: handleUpdateGoal
+      subtitle: `/ ${leadsGoal} goal`,
+      onClick: handleUpdateLeadsGoal
     },
     { 
-      label: "Calls Goal", 
+      label: "Calls Today", 
       value: stats.callsToday.toString(), 
       icon: Phone, 
       color: "text-pink-500", 
       bg: "bg-pink-500/10", 
-      subtitle: `/ ${callsGoal} calls today`,
+      subtitle: `/ ${callsGoal} goal`,
       onClick: handleUpdateCallsGoal
     },
-    { label: "Close Time", value: `${stats.avgTimeToClose} Days`, icon: Clock, color: "text-purple-500", bg: "bg-purple-500/10" },
+    { label: "Avg Close Time", value: `${stats.avgTimeToClose} Days`, icon: Clock, color: "text-purple-500", bg: "bg-purple-500/10" },
   ]
 
   return (
@@ -213,7 +197,7 @@ export function Dashboard({ role }: { role: string }) {
       ) : (
         <>
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         {statCards.map((stat, i) => (
           <div 
             key={i} 
@@ -269,7 +253,6 @@ export function Dashboard({ role }: { role: string }) {
                   <thead>
                     <tr className="bg-muted/50">
                       <th className="p-4 text-xs font-bold uppercase text-muted-foreground border-b border-border">Lead</th>
-                      <th className="p-4 text-xs font-bold uppercase text-muted-foreground border-b border-border text-right">Value</th>
                       <th className="p-4 text-xs font-bold uppercase text-muted-foreground border-b border-border text-center">Status</th>
                     </tr>
                   </thead>
@@ -280,7 +263,7 @@ export function Dashboard({ role }: { role: string }) {
                           <div className="font-semibold text-sm">{lead.name}</div>
                           <div className="text-[10px] text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString()}</div>
                         </td>
-                        <td className="p-4 border-b border-border text-right font-bold text-sm text-foreground/80">${parseFloat(lead.value).toLocaleString()}</td>
+
                         <td className="p-4 border-b border-border text-center">
                           <span className={cn(
                             "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tight",
