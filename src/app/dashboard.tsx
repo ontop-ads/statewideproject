@@ -167,7 +167,7 @@ export function Dashboard({ role }: { role: string }) {
             key={i} 
             onClick={stat.onClick}
             className={cn(
-              "bg-card border border-border p-5 rounded-2xl transition-all",
+              "bg-card text-card-foreground border border-border p-5 rounded-2xl transition-all",
               stat.onClick ? "cursor-pointer hover:border-primary/50 hover:bg-primary/5 shadow-sm hover:shadow-md" : "hover:border-primary/50"
             )}
           >
@@ -197,7 +197,7 @@ export function Dashboard({ role }: { role: string }) {
       {/* Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Recent Leads Table */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
+        <div className="lg:col-span-2 bg-card text-card-foreground border border-border rounded-2xl overflow-hidden flex flex-col">
           <div className="p-4 md:p-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h2 className="text-xl font-semibold">Recent Activity</h2>
             <div className="relative w-full md:w-auto">
@@ -222,9 +222,9 @@ export function Dashboard({ role }: { role: string }) {
                   </thead>
                   <tbody>
                     {stats.recentLeads.slice(0, 6).map((lead: any, i: number) => (
-                      <tr key={i} className="hover:bg-muted/30 transition-colors">
+                      <tr key={i} className="hover:bg-muted/50 transition-colors">
                         <td className="p-4 border-b border-border">
-                          <div className="font-semibold text-sm">{lead.name}</div>
+                          <div className="font-semibold text-sm text-card-foreground">{lead.name}</div>
                           <div className="text-[10px] text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString()}</div>
                         </td>
 
@@ -255,14 +255,14 @@ export function Dashboard({ role }: { role: string }) {
         </div>
 
         {/* Lead Sources Chart */}
-        <div className="bg-card border border-border rounded-2xl p-6 flex flex-col">
+        <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 flex flex-col">
           <h2 className="text-xl font-semibold mb-6">Top Channels</h2>
           <div className="space-y-6 flex-1">
             {stats.sourceData.length > 0 ? stats.sourceData.map((source, i) => (
               <div key={i} className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                   <span className="text-muted-foreground">{source.name}</span>
-                  <span className="font-bold">{source.value}%</span>
+                  <span className="font-bold text-card-foreground">{source.value}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden shadow-inner">
                   <div 
@@ -283,14 +283,14 @@ export function Dashboard({ role }: { role: string }) {
         </div>
 
         {/* Service Distribution Chart */}
-        <div className="bg-card border border-border rounded-2xl p-6 flex flex-col">
+        <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 flex flex-col">
           <h2 className="text-xl font-semibold mb-6">Best Sellers</h2>
           <div className="space-y-6 flex-1">
             {stats.serviceData.length > 0 ? stats.serviceData.map((service, i) => (
               <div key={i} className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                   <span className="text-muted-foreground">{service.name}</span>
-                  <span className="font-bold">{service.value}%</span>
+                  <span className="font-bold text-card-foreground">{service.value}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden shadow-inner">
                   <div 
