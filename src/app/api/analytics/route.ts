@@ -22,7 +22,8 @@ export async function GET() {
       leadsBySource,
       leadsByService,
       projectsByLead,
-      leadsByStatus
+      leadsByStatus,
+      leadsByCity
     ] = await Promise.all([
       prisma.lead.count(),
       prisma.lead.count({ where: { createdAt: { gte: firstOfMonth } } }),
@@ -43,6 +44,10 @@ export async function GET() {
       }),
       prisma.lead.groupBy({
         by: ['status'],
+        _count: { _all: true }
+      }),
+      prisma.lead.groupBy({
+        by: ['city'],
         _count: { _all: true }
       })
     ]);
@@ -80,6 +85,13 @@ export async function GET() {
     const confirmedJobs = statusData["Confirmed Job"] || 0;
     const conversionRate = totalLeads > 0 ? Math.round((confirmedJobs / totalLeads) * 100) : 0;
 
+    // Format Regional Data
+    const regionalData = leadsByCity.map(s => ({
+      name: s.city || "Unknown",
+      count: s._count._all,
+      percent: totalLeads > 0 ? Math.round((s._count._all / totalLeads) * 100) : 0
+    })).sort((a, b) => b.count - a.count);
+
     // Final Payload
     return NextResponse.json({
       totalLeads,
@@ -92,7 +104,8 @@ export async function GET() {
       sourceData,
       serviceData,
       statusData,
-      confirmedJobs
+      confirmedJobs,
+      regionalData
     });
 
   } catch (error) {

@@ -225,8 +225,20 @@ export default function CampaignPerformancePage() {
             <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
               <h2 className="text-xl font-semibold mb-6">Regional Distribution (City)</h2>
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground italic text-center py-4">Data is now being aggregated on the server for speed.</p>
-                {totalLeads === 0 && <p className="text-sm text-muted-foreground italic text-center py-4">No leads to display</p>}
+                {analytics?.regionalData?.map((region: any, i: number) => (
+                  <div key={i} className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground font-medium">{region.name}</span>
+                      <span className="font-bold">{region.count} leads <span className="text-muted-foreground font-normal">({region.percent}%)</span></span>
+                    </div>
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-indigo-500 transition-all duration-700" style={{ width: `${region.percent}%` }} />
+                    </div>
+                  </div>
+                ))}
+                {(!analytics?.regionalData || analytics.regionalData.length === 0) && (
+                  <p className="text-sm text-muted-foreground italic text-center py-4">No data to display</p>
+                )}
               </div>
             </div>
           </div>
