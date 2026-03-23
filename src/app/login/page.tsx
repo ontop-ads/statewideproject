@@ -21,7 +21,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020B18] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020B18] relative overflow-hidden">
       {/* Background grid */}
       <div
         className="absolute inset-0 opacity-[0.03]"
@@ -43,7 +43,7 @@ export default function LoginPage() {
         className="relative w-full max-w-[420px] mx-4"
       >
         {/* Card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_20px_80px_rgba(0,0,0,0.5)]">
+        <div className="bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-8 shadow-xl dark:shadow-[0_20px_80px_rgba(0,0,0,0.5)]">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-20 h-20 bg-white rounded-full border-2 border-blue-500/50 overflow-hidden shadow-lg mb-4 flex items-center justify-center">
@@ -53,13 +53,13 @@ export default function LoginPage() {
                 className="w-full h-full object-contain p-1"
               />
             </div>
-            <h1 className="text-2xl font-bold text-white">Statewide Stone Care</h1>
-            <p className="text-white/50 text-sm mt-1">Sign in to continue</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Statewide Stone Care</h1>
+            <p className="text-slate-500 dark:text-white/50 text-sm mt-1">Sign in to continue</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-white/70 text-sm font-medium mb-1.5">
+              <label className="block text-slate-600 dark:text-white/70 text-sm font-medium mb-1.5">
                 Email
               </label>
               <input
@@ -67,12 +67,12 @@ export default function LoginPage() {
                 name="email"
                 required
                 placeholder="your@email.com"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 transition-all"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:border-blue-500 focus:dark:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-white/70 text-sm font-medium mb-1.5">
+              <label className="block text-slate-600 dark:text-white/70 text-sm font-medium mb-1.5">
                 Password
               </label>
               <input
@@ -80,7 +80,7 @@ export default function LoginPage() {
                 name="password"
                 required
                 placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 transition-all"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:border-blue-500 focus:dark:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 transition-all"
               />
             </div>
 
