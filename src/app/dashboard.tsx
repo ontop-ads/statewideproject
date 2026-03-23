@@ -57,12 +57,11 @@ export function Dashboard({ role }: { role: string }) {
           color: chartColors[i % chartColors.length]
         }))
 
-        // Mock service data for now since we don't have it in analytics yet
-        const serviceData = [
-          { name: "Restoration", value: 45, color: "bg-blue-500" },
-          { name: "Cleaning", value: 30, color: "bg-emerald-500" },
-          { name: "Repair", value: 25, color: "bg-amber-500" }
-        ]
+        const serviceData = (analytics.serviceData || []).map((s: any, i: number) => ({
+          name: s.name,
+          value: s.percent,
+          color: chartColors[(i + 2) % chartColors.length] // offset colors to look different from source
+        }))
 
         setStats({
           leadCount: analytics.totalLeads,
@@ -179,7 +178,7 @@ export function Dashboard({ role }: { role: string }) {
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-bold truncate">{stat.value}</h3>
+                <h3 className="text-lg xl:text-xl font-bold leading-tight line-clamp-2">{stat.value}</h3>
                 {stat.subtitle && (
                   <p className={cn(
                     "text-[11px] font-extrabold mt-1 uppercase tracking-wide",

@@ -20,6 +20,7 @@ export async function GET() {
       totalProjects,
       projectsThisMonth,
       leadsBySource,
+      leadsByService,
       projectsByLead,
       leadsByStatus
     ] = await Promise.all([
@@ -30,6 +31,10 @@ export async function GET() {
       prisma.project.count({ where: { createdAt: { gte: firstOfMonth } } }),
       prisma.lead.groupBy({
         by: ['source'],
+        _count: { _all: true }
+      }),
+      prisma.lead.groupBy({
+        by: ['serviceType'],
         _count: { _all: true }
       }),
       prisma.project.findMany({
@@ -44,7 +49,7 @@ export async function GET() {
 
     // Calculate Avg Close Time
     let totalDays = 0;
-    projectsByLead.forEach(p => {
+    projectsByLead.forEach((p: any) => {
       if (p.lead) {
         const diff = p.createdAt.getTime() - p.lead.createdAt.getTime();
         totalDays += diff / (1000 * 60 * 60 * 24);
@@ -57,7 +62,14 @@ export async function GET() {
       name: s.source || "Referral",
       count: s._count._all,
       percent: totalLeads > 0 ? Math.round((s._count._all / totalLeads) * 100) : 0
-    }));
+    })).sort((a, b) => b.count - a.count);
+
+    // Format Service Data
+    const serviceData = leadsByService.map(s => ({
+      name: s.serviceType || "Unknown",
+      count: s._count._all,
+      percent: totalLeads > 0 ? Math.round((s._count._all / totalLeads) * 100) : 0
+    })).sort((a, b) => b.count - a.count);
 
     // Format Status Data
     const statusData = leadsByStatus.reduce((acc: any, s) => {
@@ -78,6 +90,7 @@ export async function GET() {
       avgTimeToClose,
       conversionRate,
       sourceData,
+      serviceData,
       statusData,
       confirmedJobs
     });

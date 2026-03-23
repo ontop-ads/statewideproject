@@ -106,6 +106,28 @@ export default function MarketingPage() {
                   return data.sources.map((source, i) => {
                     if (source.leads === 0) return null;
                     
+                    const colorMap: Record<string, string> = {
+                      "bg-blue-600": "#2563eb",
+                      "bg-orange-500": "#f97316",
+                      "bg-purple-500": "#a855f7",
+                      "bg-pink-500": "#ec4899",
+                      "bg-emerald-500": "#10b981"
+                    }
+                    const strokeColor = colorMap[source.color] || '#3b82f6';
+                    
+                    if (source.value === 100) {
+                      return (
+                        <circle
+                          key={i}
+                          cx="50" cy="50" r="40"
+                          fill="none"
+                          stroke={strokeColor}
+                          strokeWidth="12"
+                          className="transition-all duration-1000"
+                        />
+                      )
+                    }
+
                     const startX = Math.cos(2 * Math.PI * cumulativePercent)
                     const startY = Math.sin(2 * Math.PI * cumulativePercent)
                     cumulativePercent += source.value / 100
@@ -118,21 +140,12 @@ export default function MarketingPage() {
                       `A 40 40 0 ${largeArcFlag} 1 ${50 + 40 * endX} ${50 + 40 * endY}`
                     ].join(' ')
                     
-                    // Direct hex mapping for reliability
-                    const colorMap: Record<string, string> = {
-                      "bg-blue-600": "#2563eb",
-                      "bg-orange-500": "#f97316",
-                      "bg-purple-500": "#a855f7",
-                      "bg-pink-500": "#ec4899",
-                      "bg-emerald-500": "#10b981"
-                    }
-                    
                     return (
                       <path
                         key={i}
                         d={pathData}
                         fill="none"
-                        stroke={colorMap[source.color] || '#3b82f6'}
+                        stroke={strokeColor}
                         strokeWidth="12"
                         className="transition-all duration-1000"
                       />
