@@ -137,7 +137,7 @@ export default function CampaignPerformancePage() {
               </div>
               <div className="mt-8 p-4 bg-muted rounded-xl text-center">
                 <p className="text-xs text-muted-foreground">
-                  <span className="font-bold text-foreground">{conversionRate}%</span> of all leads converted to Confirmed Jobs
+                  <span className="font-bold text-card-foreground">{conversionRate}%</span> of all leads converted to Confirmed Jobs
                 </p>
               </div>
             </div>

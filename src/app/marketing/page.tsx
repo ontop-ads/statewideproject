@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { BarChart3, TrendingUp, Users, Target, Instagram, Search, Share2, DollarSign } from "lucide-react"
+import { BarChart3, TrendingUp, Users, Target, Instagram, Search, Share2, DollarSign, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function MarketingPage() {
@@ -171,10 +171,11 @@ export default function MarketingPage() {
             </div>
           </div>
 
-          <div className="mt-8 p-4 bg-primary/5 rounded-xl border border-primary/10 text-center">
-            <p className="text-xs text-muted-foreground italic">
-              * CPL is calculated based on monthly ad spend entered in the <span className="font-bold text-foreground">Campaign Performance</span> page.
-            </p>
+            <div className="mt-6 p-4 bg-muted/50 rounded-xl text-sm text-card-foreground font-medium flex items-start gap-3 border border-border">
+              <Info className="text-card-foreground shrink-0 mt-0.5" size={18} />
+              <p>
+                * CPL is calculated based on monthly ad spend entered in the <span className="font-bold text-card-foreground">Campaign Performance</span> page.
+              </p>
           </div>
         </div>
 
@@ -185,8 +186,8 @@ export default function MarketingPage() {
               <h3 className="text-sm font-bold text-emerald-500 mb-1 flex items-center gap-2">
                 <TrendingUp size={16} /> Lead Quality Focus
               </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Current data shows a <span className="font-bold text-foreground">{data.leadQuality}%</span> conversion rate. 
+              <p className="text-xs text-muted-foreground">
+                Current data shows a <span className="font-bold text-card-foreground">{data.leadQuality}%</span> conversion rate. 
                 Focusing on channels with higher conversion rather than lower CPL often yields better results.
               </p>
             </div>
@@ -195,8 +196,8 @@ export default function MarketingPage() {
               <h3 className="text-sm font-bold text-blue-500 mb-1 flex items-center gap-2">
                 <BarChart3 size={16} /> Volume Projections
               </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                With a total of <span className="font-bold text-foreground">{data.totalLeads}</span> leads tracked, 
+              <p className="text-xs text-muted-foreground">
+                With a total of <span className="font-bold text-card-foreground">{data.totalLeads}</span> leads tracked, 
                 the platform is building a strong baseline for seasonal campaign optimization.
               </p>
             </div>

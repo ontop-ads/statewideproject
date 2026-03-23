@@ -168,11 +168,11 @@ export function LeadsTable({ role }: { role: string }) {
               {filteredLeads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-muted/30 transition-colors text-sm">
                   <td className="p-4 border-b border-border">
-                    <div className="font-semibold text-foreground">{lead.name}</div>
+                    <div className="font-semibold text-card-foreground">{lead.name}</div>
                   </td>
                   <td className="p-4 border-b border-border">
                     <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2 text-foreground/70">
+                      <div className="flex items-center gap-2 text-card-foreground/70">
                         <Mail size={12} /> {lead.email}
                       </div>
                       <div className="flex items-center gap-2">

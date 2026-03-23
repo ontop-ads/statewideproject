@@ -29,7 +29,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {session && <Sidebar session={session} />}
-          <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-marble p-4 pb-24 md:p-8 transition-colors duration-200">
+          <main className="flex-1 overflow-y-auto p-4 pb-24 md:p-8 transition-colors duration-200">
             <div className="max-w-7xl mx-auto">{children}</div>
           </main>
         </ThemeProvider>
