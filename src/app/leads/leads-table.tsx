@@ -14,7 +14,9 @@ interface Lead {
   serviceType: string
   status: LeadStatus
   source: string
-  address: string
+  street?: string
+  neighborhood?: string
+  city?: string
   createdAt: string
 }
 
@@ -157,6 +159,7 @@ export function LeadsTable({ role }: { role: string }) {
                 <th className="p-4 font-semibold text-sm border-b border-border">Name</th>
                 <th className="p-4 font-semibold text-sm border-b border-border">Contact</th>
                 <th className="p-4 font-semibold text-sm border-b border-border">Service</th>
+                <th className="p-4 font-semibold text-sm border-b border-border">Location</th>
                 <th className="p-4 font-semibold text-sm border-b border-border">Status</th>
                 <th className="p-4 font-semibold text-sm border-b border-border">Date</th>
                 {canDelete && (
@@ -181,6 +184,17 @@ export function LeadsTable({ role }: { role: string }) {
                     </div>
                   </td>
                   <td className="p-4 border-b border-border text-xs font-medium">{lead.serviceType}</td>
+                  <td className="p-4 border-b border-border">
+                    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin size={12} className="text-card-foreground/70 shrink-0" />
+                        <span className="truncate max-w-[150px]" title={[lead.street, lead.neighborhood].filter(Boolean).join(' - ')}>
+                          {[lead.street, lead.neighborhood].filter(Boolean).join(' - ') || "No Address"}
+                        </span>
+                      </div>
+                      <div className="font-medium text-card-foreground/80 pl-4">{lead.city || "Unknown City"}</div>
+                    </div>
+                  </td>
                   <td className="p-4 border-b border-border">
                     {canChangeStatus ? (
                       <select 
