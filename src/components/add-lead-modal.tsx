@@ -16,7 +16,7 @@ const leadSchema = z.object({
   neighborhood: z.string().min(2, "Neighborhood is required"),
   city: z.enum(["NYC", "NJ", "CT", "OTHER"]),
   source: z.string().min(1, "Please select a source"),
-  serviceType: z.enum(["Restoration", "Antietch", "Cleaning", "Polishing", "Refinishing", "Regrout", "Maintenance", "Repair", "Commercial"]),
+  serviceType: z.enum(["Restoration", "Antietch", "Cleaning", "Polishing", "Refinishing", "Regrout", "Maintenance", "Repair", "Fabricate & Install", "Commercial"]),
 })
 
 type LeadFormValues = z.infer<typeof leadSchema>
@@ -247,7 +247,7 @@ export function AddLeadModal({ isOpen, onClose }: AddLeadModalProps) {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Service Type</label>
                     <div className="grid grid-cols-2 gap-2">
-                      {["Restoration", "Antietch", "Cleaning", "Polishing", "Refinishing", "Regrout", "Maintenance", "Repair", "Commercial"].map((type) => (
+                      {["Restoration", "Antietch", "Cleaning", "Polishing", "Refinishing", "Regrout", "Maintenance", "Repair", "Fabricate & Install", "Commercial"].map((type) => (
                         <button
                           key={type}
                           type="button"
