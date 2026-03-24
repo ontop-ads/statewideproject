@@ -5,9 +5,30 @@ import { getSession } from "@/lib/auth";
 // Only Admin and Financeiro can create/manage projects
 const CAN_MANAGE_PROJECTS = ["ADMIN", "FINANCE"];
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get("month");
+    const year = searchParams.get("year");
+
+    let dateFilter = {};
+    if (month && year) {
+      const monthInt = parseInt(month);
+      const yearInt = parseInt(year);
+      
+      const startDate = new Date(yearInt, monthInt - 1, 1);
+      const endDate = new Date(yearInt, monthInt, 1);
+      
+      dateFilter = {
+        createdAt: {
+          gte: startDate,
+          lt: endDate,
+        }
+      };
+    }
+
     const projects = await (prisma.project as any).findMany({
+      where: dateFilter,
       orderBy: { createdAt: "desc" },
       include: { lead: true }
     });

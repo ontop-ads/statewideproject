@@ -7,9 +7,30 @@ const CAN_CREATE_LEADS = ["ADMIN", "MARKETING", "OPERATOR"];
 // Operadores cannot edit or delete
 const CAN_MUTATE_LEADS = ["ADMIN", "MARKETING"];
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get("month");
+    const year = searchParams.get("year");
+
+    let dateFilter = {};
+    if (month && year) {
+      const monthInt = parseInt(month);
+      const yearInt = parseInt(year);
+      
+      const startDate = new Date(yearInt, monthInt - 1, 1);
+      const endDate = new Date(yearInt, monthInt, 1);
+      
+      dateFilter = {
+        createdAt: {
+          gte: startDate,
+          lt: endDate,
+        }
+      };
+    }
+
     const leads = await prisma.lead.findMany({
+      where: dateFilter,
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(leads);

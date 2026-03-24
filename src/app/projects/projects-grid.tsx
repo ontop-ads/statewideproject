@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
+import { MonthYearPicker } from "@/components/month-year-picker"
 
 const CAN_MANAGE = ["ADMIN", "FINANCE"]
 
@@ -158,9 +159,9 @@ export function ProjectsGrid({ role }: { role: string }) {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   
-  // Modal states
   const [viewingProject, setViewingProject] = useState<Project | null>(null)
   const [deletingProjectId, setDeletingProjectId] = useState<number | null>(null)
+  const [selectedMonth, setSelectedMonth] = useState(new Date())
 
   const canDelete = CAN_MANAGE.includes(role)
   const canTogglePayment = CAN_MANAGE.includes(role)
@@ -168,7 +169,7 @@ export function ProjectsGrid({ role }: { role: string }) {
   const fetchProjects = async () => {
     try {
       setIsLoading(true)
-      const res = await fetch('/api/projects')
+      const res = await fetch(`/api/projects?month=${selectedMonth.getMonth() + 1}&year=${selectedMonth.getFullYear()}`)
       if (res.ok) {
         const data = await res.json()
         setProjects(data)
@@ -182,7 +183,7 @@ export function ProjectsGrid({ role }: { role: string }) {
 
   useEffect(() => {
     fetchProjects()
-  }, [])
+  }, [selectedMonth])
 
   const deleteProject = (id: number) => {
     if (!canDelete) return
@@ -237,6 +238,7 @@ export function ProjectsGrid({ role }: { role: string }) {
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Projects</h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">Management of approved budgets and active jobs.</p>
         </div>
+        <MonthYearPicker date={selectedMonth} onChange={setSelectedMonth} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

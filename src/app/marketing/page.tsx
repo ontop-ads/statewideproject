@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { BarChart3, TrendingUp, Users, Target, Instagram, Search, Share2, DollarSign, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { MonthYearPicker } from "@/components/month-year-picker"
 
 export default function MarketingPage() {
   const [data, setData] = useState({
@@ -20,15 +21,22 @@ export default function MarketingPage() {
 
   const [isLoading, setIsLoading] = useState(true)
   const [adSpend, setAdSpend] = useState<Record<string, string>>({})
+  const [selectedMonth, setSelectedMonth] = useState(new Date())
+
+  const activeMonthKey = `adSpend_${selectedMonth.getFullYear()}_${selectedMonth.getMonth() + 1}`
 
   useEffect(() => {
-    const savedSpend = localStorage.getItem("adSpend")
-    if (savedSpend) setAdSpend(JSON.parse(savedSpend))
+    const savedSpend = localStorage.getItem(activeMonthKey)
+    if (savedSpend) {
+      setAdSpend(JSON.parse(savedSpend))
+    } else {
+      setAdSpend({})
+    }
 
     const fetchMarketingData = async () => {
       try {
         setIsLoading(true)
-        const res = await fetch('/api/analytics')
+        const res = await fetch(`/api/analytics?month=${selectedMonth.getMonth() + 1}&year=${selectedMonth.getFullYear()}`)
         if (!res.ok) throw new Error("Failed to fetch analytics")
         
         const analytics = await res.json()
@@ -56,16 +64,19 @@ export default function MarketingPage() {
     }
     
     fetchMarketingData()
-  }, [])
+  }, [selectedMonth])
 
   const totalSpend = data.sources.reduce((acc, s) => acc + (parseFloat(adSpend[s.key]) || 0), 0)
   const overallCPL = totalSpend > 0 && data.totalLeads > 0 ? (totalSpend / data.totalLeads).toFixed(2) : null
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Marketing Insights</h1>
-        <p className="text-muted-foreground mt-1">Analyzing lead acquisition efficiency and channel performance.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Marketing Insights</h1>
+          <p className="text-muted-foreground mt-1">Analyzing lead acquisition efficiency and channel performance.</p>
+        </div>
+        <MonthYearPicker date={selectedMonth} onChange={setSelectedMonth} />
       </div>
 
       {isLoading ? (

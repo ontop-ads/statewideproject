@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Users, Search, Mail, Phone, Trash2, CheckCircle2, Clock, MessageSquare, Briefcase, MapPin, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
+import { MonthYearPicker } from "@/components/month-year-picker"
 
 type LeadStatus = "New" | "Sent to Jobber" | "Quote Sent" | "Confirmed Job" | "Declined"
 
@@ -28,6 +29,7 @@ export function LeadsTable({ role }: { role: string }) {
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [deletingLeadId, setDeletingLeadId] = useState<number | null>(null)
+  const [selectedMonth, setSelectedMonth] = useState(new Date())
 
   const canDelete = CAN_MUTATE.includes(role)
   const canChangeStatus = CAN_MUTATE.includes(role)
@@ -35,7 +37,7 @@ export function LeadsTable({ role }: { role: string }) {
   const fetchLeads = async () => {
     try {
       setIsLoading(true)
-      const res = await fetch('/api/leads')
+      const res = await fetch(`/api/leads?month=${selectedMonth.getMonth() + 1}&year=${selectedMonth.getFullYear()}`)
       if (res.ok) {
         const data = await res.json()
         setLeads(data)
@@ -49,7 +51,7 @@ export function LeadsTable({ role }: { role: string }) {
 
   useEffect(() => {
     fetchLeads()
-  }, [])
+  }, [selectedMonth])
 
   const deleteLead = (id: number) => {
     if (!canDelete) return
@@ -157,6 +159,7 @@ export function LeadsTable({ role }: { role: string }) {
               className="bg-background border border-border rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-full md:w-64"
             />
           </div>
+          <MonthYearPicker date={selectedMonth} onChange={setSelectedMonth} />
         </div>
 
         <div className="overflow-x-auto">

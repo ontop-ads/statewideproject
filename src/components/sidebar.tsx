@@ -56,7 +56,12 @@ export function Sidebar({ session }: { session: Session }) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleLinkClick = () => setIsNavigating(true)
 
@@ -194,8 +199,8 @@ export function Sidebar({ session }: { session: Session }) {
               collapsed ? "justify-center" : ""
             )}
           >
-            <div className="flex items-center justify-center w-[22px]">
-              {theme === "dark" ? <Sun size={22} className="flex-shrink-0" /> : <Moon size={22} className="flex-shrink-0" />}
+            <div className="flex items-center justify-center w-[22px] h-[22px]">
+              {mounted && (theme === "dark" ? <Sun size={22} className="flex-shrink-0" /> : <Moon size={22} className="flex-shrink-0" />)}
             </div>
             {!collapsed && <span className="font-medium text-left">Toggle Theme</span>}
           </button>

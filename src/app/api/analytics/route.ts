@@ -2,13 +2,31 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get("month");
+    const year = searchParams.get("year");
+
+    let dateFilter: any = {};
+    if (month && year) {
+      const monthInt = parseInt(month);
+      const yearInt = parseInt(year);
+      const startDate = new Date(yearInt, monthInt - 1, 1);
+      const endDate = new Date(yearInt, monthInt, 1);
+      dateFilter = {
+        createdAt: {
+          gte: startDate,
+          lt: endDate,
+        }
+      };
+    }
+
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -25,30 +43,34 @@ export async function GET() {
       leadsByStatus,
       leadsByCity
     ] = await Promise.all([
-      prisma.lead.count(),
+      prisma.lead.count({ where: dateFilter }),
       prisma.lead.count({ where: { createdAt: { gte: firstOfMonth } } }),
       prisma.lead.count({ where: { createdAt: { gte: todayStart } } }),
-      prisma.project.count(),
+      prisma.project.count({ where: dateFilter }),
       prisma.project.count({ where: { createdAt: { gte: firstOfMonth } } }),
       prisma.lead.groupBy({
         by: ['source'],
-        _count: { _all: true }
+        _count: { _all: true },
+        where: dateFilter
       }),
       prisma.lead.groupBy({
         by: ['serviceType'],
-        _count: { _all: true }
+        _count: { _all: true },
+        where: dateFilter
       }),
       prisma.project.findMany({
-        where: { NOT: { leadId: null } },
+        where: { NOT: { leadId: null }, ...dateFilter },
         select: { createdAt: true, lead: { select: { createdAt: true } } }
       }),
       prisma.lead.groupBy({
         by: ['status'],
-        _count: { _all: true }
+        _count: { _all: true },
+        where: dateFilter
       }),
       prisma.lead.groupBy({
         by: ['city'],
-        _count: { _all: true }
+        _count: { _all: true },
+        where: dateFilter
       })
     ]);
 

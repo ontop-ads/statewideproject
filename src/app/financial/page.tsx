@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Target, Users, TrendingUp, DollarSign, Funnel, BarChart3 } from "lucide-react"
+import { MonthYearPicker } from "@/components/month-year-picker"
 
 const CHANNELS = [
   { key: "Google Ads - NY", label: "Google Ads - NY", color: "bg-blue-600", textColor: "text-blue-600", border: "border-blue-600/20", isPaid: true },
@@ -25,7 +26,11 @@ export default function CampaignPerformancePage() {
   const [analytics, setAnalytics] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Ad spend per channel — persisted in localStorage
+  const [selectedMonth, setSelectedMonth] = useState(new Date())
+
+  // Ad spend per channel — persisted in localStorage scoped to month
+  const activeMonthKey = `adSpend_${selectedMonth.getFullYear()}_${selectedMonth.getMonth() + 1}`
+
   const [adSpend, setAdSpend] = useState<Record<string, string>>({
     "Google Ads - NY": "",
     "Google Ads - NJ": "",
@@ -34,13 +39,22 @@ export default function CampaignPerformancePage() {
   })
 
   useEffect(() => {
-    const saved = localStorage.getItem("adSpend")
-    if (saved) setAdSpend(JSON.parse(saved))
+    const saved = localStorage.getItem(activeMonthKey)
+    if (saved) {
+      setAdSpend(JSON.parse(saved))
+    } else {
+      setAdSpend({
+        "Google Ads - NY": "",
+        "Google Ads - NJ": "",
+        "Google Ads - Westchester": "",
+        "Instagram": "",
+      })
+    }
 
     const fetchAnalytics = async () => {
       try {
         setIsLoading(true)
-        const res = await fetch("/api/analytics")
+        const res = await fetch(`/api/analytics?month=${selectedMonth.getMonth() + 1}&year=${selectedMonth.getFullYear()}`)
         if (res.ok) setAnalytics(await res.json())
       } catch (e) {
         console.error(e)
@@ -49,12 +63,12 @@ export default function CampaignPerformancePage() {
       }
     }
     fetchAnalytics()
-  }, [])
+  }, [selectedMonth])
 
   const handleSpendChange = (key: string, value: string) => {
     const updated = { ...adSpend, [key]: value }
     setAdSpend(updated)
-    localStorage.setItem("adSpend", JSON.stringify(updated))
+    localStorage.setItem(activeMonthKey, JSON.stringify(updated))
   }
 
   // --- Metrics ---
@@ -84,9 +98,12 @@ export default function CampaignPerformancePage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Campaign Performance</h1>
-        <p className="text-muted-foreground mt-1">Lead attribution, funnel analytics, and ad spend efficiency.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Campaign Performance</h1>
+          <p className="text-muted-foreground mt-1">Lead attribution, funnel analytics, and ad spend efficiency.</p>
+        </div>
+        <MonthYearPicker date={selectedMonth} onChange={setSelectedMonth} />
       </div>
 
       {isLoading ? (
