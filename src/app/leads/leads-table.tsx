@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Users, Search, Mail, Phone, Trash2, CheckCircle2, Clock, MessageSquare, Briefcase, MapPin, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 
 type LeadStatus = "New" | "Sent to Jobber" | "Quote Sent" | "Confirmed Job" | "Declined"
 
@@ -26,6 +27,7 @@ export function LeadsTable({ role }: { role: string }) {
   const [leads, setLeads] = useState<Lead[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [deletingLeadId, setDeletingLeadId] = useState<number | null>(null)
 
   const canDelete = CAN_MUTATE.includes(role)
   const canChangeStatus = CAN_MUTATE.includes(role)
@@ -49,19 +51,24 @@ export function LeadsTable({ role }: { role: string }) {
     fetchLeads()
   }, [])
 
-  const deleteLead = async (id: number) => {
+  const deleteLead = (id: number) => {
     if (!canDelete) return
-    if (confirm("Are you sure you want to delete this lead?")) {
-      try {
-        const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' })
-        if (res.ok) {
-          setLeads(leads.filter(lead => lead.id !== id))
-        } else {
-          alert("Access denied.")
-        }
-      } catch (error) {
-        console.error("Failed to delete lead", error)
+    setDeletingLeadId(id)
+  }
+
+  const confirmDeleteLead = async () => {
+    if (!deletingLeadId || !canDelete) return
+    try {
+      const res = await fetch(`/api/leads/${deletingLeadId}`, { method: 'DELETE' })
+      if (res.ok) {
+        setLeads(leads.filter(lead => lead.id !== deletingLeadId))
+      } else {
+        alert("Access denied.")
       }
+    } catch (error) {
+      console.error("Failed to delete lead", error)
+    } finally {
+      setDeletingLeadId(null)
     }
   }
 
@@ -251,6 +258,14 @@ export function LeadsTable({ role }: { role: string }) {
           ) : null}
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deletingLeadId !== null}
+        title="Delete Lead"
+        description="Are you sure you want to delete this lead?"
+        onClose={() => setDeletingLeadId(null)}
+        onConfirm={confirmDeleteLead}
+      />
     </div>
   )
 }

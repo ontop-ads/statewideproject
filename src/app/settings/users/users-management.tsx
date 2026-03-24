@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { ConfirmDeleteModal } from "@/components/confirm-delete-modal";
 
 type Role = "ADMIN" | "FINANCE" | "MARKETING" | "OPERATOR";
 
@@ -231,6 +232,7 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | undefined>();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [userToDeleteId, setUserToDeleteId] = useState<number | null>(null);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -274,20 +276,25 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
     setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? result : u)));
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-    setDeletingId(id);
+  const confirmDelete = async () => {
+    if (!userToDeleteId) return;
+    setDeletingId(userToDeleteId);
     try {
-      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/users/${userToDeleteId}`, { method: "DELETE" });
       const result = await res.json();
       if (!res.ok) {
         alert(result.error || "Failed to delete user.");
       } else {
-        setUsers((prev) => prev.filter((u) => u.id !== id));
+        setUsers((prev) => prev.filter((u) => u.id !== userToDeleteId));
       }
     } finally {
       setDeletingId(null);
+      setUserToDeleteId(null);
     }
+  };
+
+  const handleDelete = (id: number) => {
+    setUserToDeleteId(id);
   };
 
   return (
@@ -444,6 +451,14 @@ export function UsersManagement({ currentUserId }: { currentUserId: number }) {
           />
         )}
       </AnimatePresence>
+
+      <ConfirmDeleteModal
+        isOpen={userToDeleteId !== null}
+        title="Delete User"
+        description="Are you sure you want to delete this user?"
+        onClose={() => setUserToDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

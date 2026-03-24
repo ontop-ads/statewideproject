@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 
 const CAN_MANAGE = ["ADMIN", "FINANCE"]
 
@@ -159,6 +160,7 @@ export function ProjectsGrid({ role }: { role: string }) {
   
   // Modal states
   const [viewingProject, setViewingProject] = useState<Project | null>(null)
+  const [deletingProjectId, setDeletingProjectId] = useState<number | null>(null)
 
   const canDelete = CAN_MANAGE.includes(role)
   const canTogglePayment = CAN_MANAGE.includes(role)
@@ -182,19 +184,24 @@ export function ProjectsGrid({ role }: { role: string }) {
     fetchProjects()
   }, [])
 
-  const deleteProject = async (id: number) => {
+  const deleteProject = (id: number) => {
     if (!canDelete) return
-    if (confirm("Are you sure you want to delete this project?")) {
-      try {
-        const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
-        if (res.ok) {
-          setProjects(projects.filter(p => p.id !== id))
-        } else {
-          alert("Access denied.")
-        }
-      } catch (error) {
-        console.error("Failed to delete project", error)
+    setDeletingProjectId(id)
+  }
+
+  const confirmDeleteProject = async () => {
+    if (!canDelete || !deletingProjectId) return
+    try {
+      const res = await fetch(`/api/projects/${deletingProjectId}`, { method: 'DELETE' })
+      if (res.ok) {
+        setProjects(projects.filter(p => p.id !== deletingProjectId))
+      } else {
+        alert("Access denied.")
       }
+    } catch (error) {
+      console.error("Failed to delete project", error)
+    } finally {
+      setDeletingProjectId(null)
     }
   }
 
@@ -317,6 +324,14 @@ export function ProjectsGrid({ role }: { role: string }) {
           />
         )}
       </AnimatePresence>
+
+      <ConfirmDeleteModal
+        isOpen={deletingProjectId !== null}
+        title="Delete Project"
+        description="Are you sure you want to delete this project?"
+        onClose={() => setDeletingProjectId(null)}
+        onConfirm={confirmDeleteProject}
+      />
     </div>
   )
 }
